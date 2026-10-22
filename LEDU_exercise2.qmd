@@ -64,15 +64,14 @@ Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’
 
 Using the results provided, here are the answers to the questions:
 
-```{text}
+
 •1: Based on visual inspection only, there seems to be a regional homophily between nodes, meaning that people from the same region seem to prefer asking each other for help. We can see a clear divide between orange nodes (Europe) and red ones (USA). Visually, the other two representations do not seem to portray homophily.
 •2: The Monte Carlo Maximum Likelihood results are not significant for gender matching, meaning that being part of the same gender actually does not affect your odds of asking questions to each other (0.555892).
 •3: The Monte Carlo Maximum Likelihood results are significant but negative for region matching, meaning that being part of the same region actually negatively affects the odds of asking questions to each other (estimate = -9.278e-01; 0.001045**). This suggest regional heterophily.
-•4: It is difficult to visually guess homophily or heterophily at an organizational level. The ERGM output on the other hand indicates that there is moderate positional homophily (0.013635*), meaning that people at same organizational level tend to ask more questions to each other. At the same time, the "absdiff.orglevel" indicates a strong effect on positional proximity (0.002323**), meaning that people that are close to each other (and not just at the same level) have higher odds of asking questions to each other. More precisely, we can infer that being level 3 in the organization significantly raises the odds of of asking questions to others (0.000315***), same for level 4 & 2 but with a more moderate effect (respectively 0.005992** & 0.037010*). On the receiving end of questions, being at level 4 moderately increases the odds of receiving questions (0.018663*)
-•5: Reading nodeifactor tests, vertices at the 4th organizational level seem to moderately attract more edges (0.018663*). This suggests preferential attachment, meaning that being at the 4rth organizational level moderately raises your odds of receiving questions from others
+•4: It is difficult to visually guess homophily or heterophily at an organizational level. The ERGM output on the other hand indicates that there is moderate positional homophily (0.013635\*), meaning that people at same organizational level tend to ask more questions to each other. At the same time, the "absdiff.orglevel" indicates a strong effect on positional proximity (0.002323\*\*), meaning that people that are close to each other (and not just at the same level) have higher odds of asking questions to each other. More precisely, we can infer that being level 3 in the organization significantly raises the odds of of asking questions to others (0.000315\*\*\*), same for level 4 & 2 but with a more moderate effect (respectively 0.005992\*\* & 0.037010\*). On the receiving end of questions, being at level 4 moderately increases the odds of receiving questions (0.018663*)
+•5: Reading nodeifactor tests, vertices at the 4th organizational level seem to moderately attract more edges (0.018663\*). This suggests preferential attachment, meaning that being at the 4rth organizational level moderately raises your odds of receiving questions from others
 •6: The nodeofactor() terms measures the effect of factor attributes on outward edges. In more substantive terms, it measure how factor attributes affect the likelihood of developping relationships with others.
 •7: The absdiff() term measures the homophily based on continuous attributes instead of binary ones. In our case, it measures homophily across different organizational level, and whether being at closer levels raises the odds of formining relationships.
-```
 
 ## On your own
 
@@ -154,6 +153,4 @@ Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’
 AIC: 908.1  BIC: 983.8  (Smaller is better. MC Std. Err. = 0.6431)
 ```
 
-```{text}
-These new results contredict previous analysis: only one organizational level significantly affect the odds of asking or receiving questions: being level 2 diminishes odds of asking for help (estimate=-0.94591; p=0.0146*) and raises odds of receiving questions (estimate=0.87747; p=0.0369*)
-```
+These new results contredict previous analysis: only one organizational level significantly affect the odds of asking or receiving questions: being level 2 diminishes odds of asking for help (estimate=-0.94591; p=0.0146\*) and raises odds of receiving questions (estimate=0.87747; p=0.0369\*)
