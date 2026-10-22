@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.18">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>LEDU_exercise2</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="LEDU_exercise2_files/libs/clipboard/clipboard.min.js"></script>
+<script src="LEDU_exercise2_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="LEDU_exercise2_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="LEDU_exercise2_files/libs/quarto-html/popper.min.js"></script>
+<script src="LEDU_exercise2_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="LEDU_exercise2_files/libs/quarto-html/anchor.min.js"></script>
+<link href="LEDU_exercise2_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="LEDU_exercise2_files/libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="LEDU_exercise2_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="LEDU_exercise2_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="LEDU_exercise2_files/libs/bootstrap/bootstrap-eab8c7eb36c842564c4fd5173ab83eb1.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">LEDU_exercise2</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="questions" class="level2">
+<h2 class="anchored" data-anchor-id="questions">Questions</h2>
+<p>Here is the code provided:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(network, ergm, tnet, <span class="at">install =</span> T)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>consult <span class="ot">&lt;-</span> Cross.Parker.Consulting.net.info</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>consult<span class="sc">$</span>w <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(consult<span class="sc">$</span>w <span class="sc">&lt;</span> <span class="dv">4</span>, <span class="dv">0</span>, <span class="dv">1</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>consult <span class="ot">&lt;-</span> consult[consult<span class="sc">$</span>w <span class="sc">==</span> <span class="dv">1</span>, ]</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>consult <span class="ot">&lt;-</span> <span class="fu">network</span>(consult[, <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>], <span class="at">directed =</span> T)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>consult <span class="sc">%v%</span> <span class="st">"gender"</span> <span class="ot">&lt;-</span> Cross.Parker.Consulting.node.gender</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>consult <span class="sc">%v%</span> <span class="st">"region"</span> <span class="ot">&lt;-</span> Cross.Parker.Consulting.node.region</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>consult <span class="sc">%v%</span> <span class="st">"orglevel"</span> <span class="ot">&lt;-</span> Cross.Parker.Consulting.node.orglevel</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">510</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>ergm.model <span class="ot">&lt;-</span> <span class="fu">ergm</span>(consult <span class="sc">~</span> edges <span class="sc">+</span> mutual <span class="sc">+</span> <span class="fu">gwesp</span>(<span class="fl">0.5</span>, <span class="at">fixed =</span> T) <span class="sc">+</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nodematch</span>(<span class="st">"gender"</span>) <span class="sc">+</span> <span class="fu">nodematch</span>(<span class="st">"region"</span>) <span class="sc">+</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nodematch</span>(<span class="st">"orglevel"</span>) <span class="sc">+</span> <span class="fu">nodeifactor</span>(<span class="st">"orglevel"</span>) <span class="sc">+</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nodeofactor</span>(<span class="st">"orglevel"</span>) <span class="sc">+</span> <span class="fu">absdiff</span>(<span class="st">"orglevel"</span>), <span class="at">control =</span> <span class="fu">control.ergm</span>(</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">MCMC.samplesize =</span> <span class="dv">5000</span>,</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">MCMC.burnin =</span> <span class="dv">10000</span>,</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">MCMLE.maxit =</span> <span class="dv">10</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    ), </span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">verbose =</span> T)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Evaluating network in model.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Initializing unconstrained Metropolis-Hastings proposal: 'ergm:MH_SPDyad'.
+Initializing model...
+Model initialized.
+Using initial method 'MPLE'.
+Initial parameters provided by caller: None.
+  number of free parameters: 15
+  number of fixed parameters: 0
+Fitting initial model.
+Starting maximum pseudolikelihood estimation (MPLE):
+Obtaining the responsible dyads.
+Evaluating the predictor and response matrix.
+Maximizing the pseudolikelihood.
+Finished MPLE.
+Starting Monte Carlo maximum likelihood estimation (MCMLE):
+Density guard set to 10000 from an initial count of 168 edges.
+
+Iteration 1 of at most 10 with free parameter vector:
+                 edges                 mutual    gwesp.OTP.fixed.0.5 
+           -3.70825456             3.38833650             0.71406827 
+      nodematch.gender       nodematch.region     nodematch.orglevel 
+            0.04650997             0.03850459            -0.18663437 
+nodeifactor.orglevel.2 nodeifactor.orglevel.3 nodeifactor.orglevel.4 
+            0.65643869             0.43383710             0.22003495 
+nodeifactor.orglevel.5 nodeofactor.orglevel.2 nodeofactor.orglevel.3 
+            0.55165759            -0.97260773            -0.37348499 
+nodeofactor.orglevel.4 nodeofactor.orglevel.5       absdiff.orglevel 
+           -0.46248482            -0.02719759            -0.08542977 
+Starting unconstrained MCMC...
+Sampling ■■■■■■■■■■■■■■■■■■■               61% |  ETA:  2s
+Back from unconstrained MCMC.
+New interval = 512.
+Estimated gradient of the log-likelihood:
+                 edges                 mutual    gwesp.OTP.fixed.0.5 
+            -205.05600              -83.79495             -351.54695 
+      nodematch.gender       nodematch.region     nodematch.orglevel 
+            -131.20779              -97.68189              -38.15916 
+nodeifactor.orglevel.2 nodeifactor.orglevel.3 nodeifactor.orglevel.4 
+             -29.14295              -69.20547              -46.13937 
+nodeifactor.orglevel.5 nodeofactor.orglevel.2 nodeofactor.orglevel.3 
+             -35.41326              -23.39705              -70.04737 
+nodeofactor.orglevel.4 nodeofactor.orglevel.5       absdiff.orglevel 
+             -46.77221              -37.14947             -285.96989 
+Starting MCMLE Optimization...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: 'glpk' selected as the solver, but package 'Rglpk' is not available;
+falling back to 'lpSolveAPI'. This should be fine unless the sample size and/or
+the number of parameters is very big.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>1 Optimizing with step length 0.2727.
+Using lognormal metric (see control.ergm function).
+Using log-normal approx (no optim)
+The log-likelihood improved by 5.0400.
+Estimating equations are not within tolerance region.
+
+Iteration 2 of at most 10 with free parameter vector:
+                 edges                 mutual    gwesp.OTP.fixed.0.5 
+           -4.19508878             3.32210505             0.92504504 
+      nodematch.gender       nodematch.region     nodematch.orglevel 
+            0.01519900             0.02660961            -0.17118518 
+nodeifactor.orglevel.2 nodeifactor.orglevel.3 nodeifactor.orglevel.4 
+            0.72772571             0.41223661             0.29018863 
+nodeifactor.orglevel.5 nodeofactor.orglevel.2 nodeofactor.orglevel.3 
+            0.42082283            -0.88540850            -0.42008113 
+nodeofactor.orglevel.4 nodeofactor.orglevel.5       absdiff.orglevel 
+           -0.39754493            -0.18246573            -0.07251532 
+Starting unconstrained MCMC...
+Back from unconstrained MCMC.
+New interval = 256.
+Estimated gradient of the log-likelihood:
+                 edges                 mutual    gwesp.OTP.fixed.0.5 
+            123.535830              45.472588             161.515184 
+      nodematch.gender       nodematch.region     nodematch.orglevel 
+             76.158429              70.282646              25.889273 
+nodeifactor.orglevel.2 nodeifactor.orglevel.3 nodeifactor.orglevel.4 
+             23.869415              30.127887              50.803907 
+nodeifactor.orglevel.5 nodeofactor.orglevel.2 nodeofactor.orglevel.3 
+              7.771854              18.913123              29.320203 
+nodeofactor.orglevel.4 nodeofactor.orglevel.5       absdiff.orglevel 
+             52.661127               7.326570             157.113318 
+Starting MCMLE Optimization...
+1 Optimizing with step length 0.6179.
+Using lognormal metric (see control.ergm function).
+Using log-normal approx (no optim)
+The log-likelihood improved by 18.7610.
+Distance from origin on tolerance region scale: 982.5427 (previously 3481.329).
+Estimating equations are not within tolerance region.
+
+Iteration 3 of at most 10 with free parameter vector:
+                 edges                 mutual    gwesp.OTP.fixed.0.5 
+           -3.88680812             2.69599348             1.32254229 
+      nodematch.gender       nodematch.region     nodematch.orglevel 
+           -0.18428365             0.25496865            -0.60772743 
+nodeifactor.orglevel.2 nodeifactor.orglevel.3 nodeifactor.orglevel.4 
+            0.68341047             0.20236222             0.64112426 
+nodeifactor.orglevel.5 nodeofactor.orglevel.2 nodeofactor.orglevel.3 
+           -0.08550677            -0.94318561            -0.74770597 
+nodeofactor.orglevel.4 nodeofactor.orglevel.5       absdiff.orglevel 
+           -0.04998629            -0.88771806            -0.14633974 
+Starting unconstrained MCMC...
+Back from unconstrained MCMC.
+New interval = 128.
+Estimated gradient of the log-likelihood:
+                 edges                 mutual    gwesp.OTP.fixed.0.5 
+            -422.22739             -163.02840             -771.29399 
+      nodematch.gender       nodematch.region     nodematch.orglevel 
+            -252.90445             -241.33812              -95.07310 
+nodeifactor.orglevel.2 nodeifactor.orglevel.3 nodeifactor.orglevel.4 
+             -81.55126              -75.69182             -202.29537 
+nodeifactor.orglevel.5 nodeofactor.orglevel.2 nodeofactor.orglevel.3 
+             -14.18280              -68.25190              -73.73344 
+nodeofactor.orglevel.4 nodeofactor.orglevel.5       absdiff.orglevel 
+            -208.78235              -14.51302             -552.35063 
+Starting MCMLE Optimization...
+1 Optimizing with step length 0.1028.
+Using lognormal metric (see control.ergm function).
+Using log-normal approx (no optim)
+The log-likelihood improved by 4.3234.
+Distance from origin on tolerance region scale: 8188.224 (previously 8611.399).
+Estimating equations are not within tolerance region.
+
+Iteration 4 of at most 10 with free parameter vector:
+                 edges                 mutual    gwesp.OTP.fixed.0.5 
+          -4.276024672            2.805692623            1.382943785 
+      nodematch.gender       nodematch.region     nodematch.orglevel 
+          -0.147780682            0.225307327           -0.573968861 
+nodeifactor.orglevel.2 nodeifactor.orglevel.3 nodeifactor.orglevel.4 
+           0.708828742            0.247491146            0.621124438 
+nodeifactor.orglevel.5 nodeofactor.orglevel.2 nodeofactor.orglevel.3 
+          -0.002707387           -0.906438567           -0.704879319 
+nodeofactor.orglevel.4 nodeofactor.orglevel.5       absdiff.orglevel 
+          -0.093804813           -0.760212633           -0.129230301 
+Starting unconstrained MCMC...
+Back from unconstrained MCMC.
+New interval = 128.
+Estimated gradient of the log-likelihood:
+                 edges                 mutual    gwesp.OTP.fixed.0.5 
+            -374.43368             -145.04828             -683.43447 
+      nodematch.gender       nodematch.region     nodematch.orglevel 
+            -224.30919             -212.25600              -85.18667 
+nodeifactor.orglevel.2 nodeifactor.orglevel.3 nodeifactor.orglevel.4 
+             -73.21502              -65.26119             -180.55467 
+nodeifactor.orglevel.5 nodeofactor.orglevel.2 nodeofactor.orglevel.3 
+             -12.36786              -62.35144              -63.63130 
+nodeofactor.orglevel.4 nodeofactor.orglevel.5       absdiff.orglevel 
+            -185.38611              -12.87481             -492.94189 
+Starting MCMLE Optimization...
+1 Optimizing with step length 0.1243.
+Using lognormal metric (see control.ergm function).
+Using log-normal approx (no optim)
+The log-likelihood improved by 4.3680.
+Distance from origin on tolerance region scale: 5654.691 (previously 7139.32).
+Estimating equations are not within tolerance region.
+
+Iteration 5 of at most 10 with free parameter vector:
+                 edges                 mutual    gwesp.OTP.fixed.0.5 
+            -4.7360770              2.8466032              1.5596106 
+      nodematch.gender       nodematch.region     nodematch.orglevel 
+            -0.1248178              0.2035270             -0.5816492 
+nodeifactor.orglevel.2 nodeifactor.orglevel.3 nodeifactor.orglevel.4 
+             0.7102055              0.2738616              0.5746020 
+nodeifactor.orglevel.5 nodeofactor.orglevel.2 nodeofactor.orglevel.3 
+             0.1433184             -0.9140883             -0.6896789 
+nodeofactor.orglevel.4 nodeofactor.orglevel.5       absdiff.orglevel 
+            -0.1827212             -0.7032747             -0.1384523 
+Starting unconstrained MCMC...
+Back from unconstrained MCMC.
+New interval = 64.
+Estimated gradient of the log-likelihood:
+                 edges                 mutual    gwesp.OTP.fixed.0.5 
+            -321.26021             -124.12042             -587.38701 
+      nodematch.gender       nodematch.region     nodematch.orglevel 
+            -193.95242             -184.48737              -74.22758 
+nodeifactor.orglevel.2 nodeifactor.orglevel.3 nodeifactor.orglevel.4 
+             -62.43158              -54.60568             -157.53200 
+nodeifactor.orglevel.5 nodeofactor.orglevel.2 nodeofactor.orglevel.3 
+             -10.50884              -53.02611              -53.25137 
+nodeofactor.orglevel.4 nodeofactor.orglevel.5       absdiff.orglevel 
+            -160.88484              -10.78653             -419.11453 
+Starting MCMLE Optimization...
+1 Optimizing with step length 0.1365.
+Using lognormal metric (see control.ergm function).
+Using log-normal approx (no optim)
+The log-likelihood improved by 3.2358.
+Distance from origin on tolerance region scale: 3473.638 (previously 4686.065).
+Estimating equations are not within tolerance region.
+
+Iteration 6 of at most 10 with free parameter vector:
+                 edges                 mutual    gwesp.OTP.fixed.0.5 
+           -4.79666181             2.85835433             1.57463180 
+      nodematch.gender       nodematch.region     nodematch.orglevel 
+           -0.09268367             0.20675381            -0.63677013 
+nodeifactor.orglevel.2 nodeifactor.orglevel.3 nodeifactor.orglevel.4 
+            0.67044177             0.25525713             0.50662392 
+nodeifactor.orglevel.5 nodeofactor.orglevel.2 nodeofactor.orglevel.3 
+            0.17122602            -0.93274061            -0.66279091 
+nodeofactor.orglevel.4 nodeofactor.orglevel.5       absdiff.orglevel 
+           -0.26137751            -0.60783310            -0.17633296 
+Starting unconstrained MCMC...
+Back from unconstrained MCMC.
+New interval = 32.
+Estimated gradient of the log-likelihood:
+                 edges                 mutual    gwesp.OTP.fixed.0.5 
+           -229.809431             -89.222947            -426.686955 
+      nodematch.gender       nodematch.region     nodematch.orglevel 
+           -130.358540            -135.843329             -56.665363 
+nodeifactor.orglevel.2 nodeifactor.orglevel.3 nodeifactor.orglevel.4 
+            -39.054976             -38.584963            -116.070621 
+nodeifactor.orglevel.5 nodeofactor.orglevel.2 nodeofactor.orglevel.3 
+             -6.141026             -32.559322             -38.892873 
+nodeofactor.orglevel.4 nodeofactor.orglevel.5       absdiff.orglevel 
+           -116.922642              -6.799000            -290.452847 
+Starting MCMLE Optimization...
+1 Optimizing with step length 0.2155.
+Using lognormal metric (see control.ergm function).
+Using log-normal approx (no optim)
+The log-likelihood improved by 2.6648.
+Distance from origin on tolerance region scale: 1147.799 (previously 1867.651).
+Estimating equations are not within tolerance region.
+
+Iteration 7 of at most 10 with free parameter vector:
+                 edges                 mutual    gwesp.OTP.fixed.0.5 
+           -4.64138120             2.89398647             1.37878156 
+      nodematch.gender       nodematch.region     nodematch.orglevel 
+           -0.05727926             0.16039711            -0.66137175 
+nodeifactor.orglevel.2 nodeifactor.orglevel.3 nodeifactor.orglevel.4 
+            0.74468584             0.32174322             0.54975080 
+nodeifactor.orglevel.5 nodeofactor.orglevel.2 nodeofactor.orglevel.3 
+            0.33664394            -0.88925520            -0.56006893 
+nodeofactor.orglevel.4 nodeofactor.orglevel.5       absdiff.orglevel 
+           -0.22484101            -0.61441111            -0.16972965 
+Starting unconstrained MCMC...
+Back from unconstrained MCMC.
+New interval = 16.
+Estimated gradient of the log-likelihood:
+                 edges                 mutual    gwesp.OTP.fixed.0.5 
+              152.9916                53.9768               177.4393 
+      nodematch.gender       nodematch.region     nodematch.orglevel 
+               94.5440                84.6900                32.2876 
+nodeifactor.orglevel.2 nodeifactor.orglevel.3 nodeifactor.orglevel.4 
+               29.9312                38.6288                59.4528 
+nodeifactor.orglevel.5 nodeofactor.orglevel.2 nodeofactor.orglevel.3 
+               11.0104                23.0648                37.5444 
+nodeofactor.orglevel.4 nodeofactor.orglevel.5       absdiff.orglevel 
+               61.8216                11.0800               196.2360 
+Starting MCMLE Optimization...
+1 Optimizing with step length 0.0402.
+Using lognormal metric (see control.ergm function).
+Using log-normal approx (no optim)
+The log-likelihood improved by 10.0716.
+Distance from origin on tolerance region scale: 124434.3 (previously 853626.9).
+Estimating equations are not within tolerance region.
+
+Iteration 8 of at most 10 with free parameter vector:
+                 edges                 mutual    gwesp.OTP.fixed.0.5 
+          -4.058974484            1.629090534            4.726287704 
+      nodematch.gender       nodematch.region     nodematch.orglevel 
+          -0.200966928           -0.005805028           -0.568803852 
+nodeifactor.orglevel.2 nodeifactor.orglevel.3 nodeifactor.orglevel.4 
+           0.404898666           -0.036348987            0.150726398 
+nodeifactor.orglevel.5 nodeofactor.orglevel.2 nodeofactor.orglevel.3 
+          -0.218022393           -0.842278281           -0.814746709 
+nodeofactor.orglevel.4 nodeofactor.orglevel.5       absdiff.orglevel 
+          -0.453916694           -1.084539731           -0.208980100 
+Starting unconstrained MCMC...
+Back from unconstrained MCMC.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: The following linear dependence has been detected among the model statistics:
+   16568/10049 * edges = gwesp.OTP.fixed.0.5
+This may indicate that the model is nonidentifiable.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>New interval = 16.
+Estimated gradient of the log-likelihood:
+                 edges                 mutual    gwesp.OTP.fixed.0.5 
+            -1447.7663              -741.4593             -2485.8265 
+      nodematch.gender       nodematch.region     nodematch.orglevel 
+             -899.7311              -718.1320              -340.8545 
+nodeifactor.orglevel.2 nodeifactor.orglevel.3 nodeifactor.orglevel.4 
+             -282.7084              -351.8198              -526.4104 
+nodeifactor.orglevel.5 nodeofactor.orglevel.2 nodeofactor.orglevel.3 
+             -105.4881              -289.1289              -352.2113 
+nodeofactor.orglevel.4 nodeofactor.orglevel.5       absdiff.orglevel 
+             -524.4153              -105.7352             -1895.2179 
+Starting MCMLE Optimization...
+1 Optimizing with step length 0.0043.
+Using lognormal metric (see control.ergm function).
+Using log-normal approx (no optim)
+The log-likelihood improved by 6.9733.
+Distance from origin on tolerance region scale: Inf (previously Inf).
+Estimating equations are not within tolerance region.
+
+Iteration 9 of at most 10 with free parameter vector:
+                 edges                 mutual    gwesp.OTP.fixed.0.5 
+           -6.81099832             6.04582502             3.05710087 
+      nodematch.gender       nodematch.region     nodematch.orglevel 
+            0.13560186            -0.04149581             0.01293985 
+nodeifactor.orglevel.2 nodeifactor.orglevel.3 nodeifactor.orglevel.4 
+            0.85082403             0.33954256             0.31673411 
+nodeifactor.orglevel.5 nodeofactor.orglevel.2 nodeofactor.orglevel.3 
+           -0.28218989            -0.83497736            -0.38620429 
+nodeofactor.orglevel.4 nodeofactor.orglevel.5       absdiff.orglevel 
+           -0.32912555            -0.66943684             0.06675152 
+Starting unconstrained MCMC...
+Back from unconstrained MCMC.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: The following linear dependence has been detected among the model statistics:
+   16568/10049 * edges = gwesp.OTP.fixed.0.5
+This may indicate that the model is nonidentifiable.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>New interval = 64.
+Estimated gradient of the log-likelihood:
+                 edges                 mutual    gwesp.OTP.fixed.0.5 
+           -1338.04674             -687.76728            -2304.92952 
+      nodematch.gender       nodematch.region     nodematch.orglevel 
+            -839.46002             -662.55456             -316.25560 
+nodeifactor.orglevel.2 nodeifactor.orglevel.3 nodeifactor.orglevel.4 
+            -263.02762             -326.67149             -490.01284 
+nodeifactor.orglevel.5 nodeofactor.orglevel.2 nodeofactor.orglevel.3 
+             -87.93810             -268.29683             -327.99334 
+nodeofactor.orglevel.4 nodeofactor.orglevel.5       absdiff.orglevel 
+            -487.77289              -88.72798            -1753.37457 
+Starting MCMLE Optimization...
+1 Optimizing with step length 0.0230.
+Using lognormal metric (see control.ergm function).
+Using log-normal approx (no optim)
+The log-likelihood improved by 2.8818.
+Distance from origin on tolerance region scale: Inf (previously Inf).
+Estimating equations are not within tolerance region.
+Estimating equations did not move closer to tolerance region more than 1 time(s) in 4 steps; increasing sample size.
+
+Iteration 10 of at most 10 with free parameter vector:
+                 edges                 mutual    gwesp.OTP.fixed.0.5 
+           -6.99507725             6.23511915             2.94545136 
+      nodematch.gender       nodematch.region     nodematch.orglevel 
+            0.14417513            -0.04369960             0.04682927 
+nodeifactor.orglevel.2 nodeifactor.orglevel.3 nodeifactor.orglevel.4 
+            0.90936060             0.35746618             0.29572080 
+nodeifactor.orglevel.5 nodeofactor.orglevel.2 nodeofactor.orglevel.3 
+           -0.11588062            -0.81005121            -0.36341598 
+nodeofactor.orglevel.4 nodeofactor.orglevel.5       absdiff.orglevel 
+           -0.23917422            -0.50835436             0.07167377 
+Starting unconstrained MCMC...
+Sampling ■■■■■■■■■                         28% |  ETA:  3s
+Back from unconstrained MCMC.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: The following linear dependence has been detected among the model statistics:
+   16568/10049 * edges = gwesp.OTP.fixed.0.5
+This may indicate that the model is nonidentifiable.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>New interval = 128.
+Estimated gradient of the log-likelihood:
+                 edges                 mutual    gwesp.OTP.fixed.0.5 
+           -1301.23916             -668.76084            -2244.24408 
+      nodematch.gender       nodematch.region     nodematch.orglevel 
+            -817.77932             -643.71772             -308.88430 
+nodeifactor.orglevel.2 nodeifactor.orglevel.3 nodeifactor.orglevel.4 
+            -256.86262             -314.94517             -477.33736 
+nodeifactor.orglevel.5 nodeofactor.orglevel.2 nodeofactor.orglevel.3 
+             -88.20749             -261.66880             -316.06481 
+nodeofactor.orglevel.4 nodeofactor.orglevel.5       absdiff.orglevel 
+            -475.76688              -88.87161            -1705.77563 
+Starting MCMLE Optimization...
+1 Optimizing with step length 0.0315.
+Using lognormal metric (see control.ergm function).
+Using log-normal approx (no optim)
+Starting MCMC s.e. computation.
+The log-likelihood improved by 534566296490.3445.
+Distance from origin on tolerance region scale: Inf (previously Inf).
+Estimating equations are not within tolerance region.
+MCMLE estimation did not converge after 10 iterations. The estimated coefficients may not be accurate. Estimation may be resumed by passing the coefficients as initial values; see 'init' under ?control.ergm for details.
+Finished MCMLE.
+Evaluating log-likelihood at the estimate. Initializing model to obtain the list of dyad-independent terms...
+Fitting the dyad-independent submodel...
+Dyad-independent submodel MLE has likelihood -536.9021 at:
+ [1] -2.15472501  0.00000000  0.00000000 -0.08148573  0.22428405 -0.47643262
+ [7]  0.29200793  0.26881856  0.41095461  0.26340708 -0.42568630 -0.15863497
+[13]  0.05487618 -0.13535062 -0.13366608  0.00000000
+Bridging between the dyad-independent submodel and the full model...
+Setting up bridge sampling...
+Initializing model and proposals...
+Model and proposals initialized.
+Using 16 bridges: Running theta=[ 5.474717e+11,-2.170970e+02,-3.320584e+11,-1.890251e+01,-2.247607e+02,-2.550273e+02, 1.394022e+02, 2.398214e+01,-4.793101e+01, 1.293805e+02,-1.093491e+02,-9.364157e+01,-2.722199e+02, 5.754192e+02,-5.918668e+01, 0.000000e+00].
+Running theta=[ 5.121509e+11,-2.030907e+02,-3.106353e+11,-1.768825e+01,-2.102455e+02,-2.386047e+02, 1.304273e+02, 2.245225e+01,-4.481217e+01, 1.210504e+02,-1.023218e+02,-8.761041e+01,-2.546537e+02, 5.382866e+02,-5.537681e+01, 0.000000e+00].
+Running theta=[ 4.768302e+11,-1.890845e+02,-2.892121e+11,-1.647399e+01,-1.957304e+02,-2.221821e+02, 1.214525e+02, 2.092236e+01,-4.169334e+01, 1.127203e+02,-9.529450e+01,-8.157926e+01,-2.370876e+02, 5.011541e+02,-5.156694e+01, 0.000000e+00].
+Running theta=[ 4.415094e+11,-1.750782e+02,-2.677890e+11,-1.525973e+01,-1.812152e+02,-2.057594e+02, 1.124776e+02, 1.939247e+01,-3.857450e+01, 1.043901e+02,-8.826718e+01,-7.554810e+01,-2.195215e+02, 4.640215e+02,-4.775706e+01, 0.000000e+00].
+Running theta=[ 4.061887e+11,-1.610720e+02,-2.463659e+11,-1.404547e+01,-1.667001e+02,-1.893368e+02, 1.035028e+02, 1.786257e+01,-3.545566e+01, 9.605998e+01,-8.123986e+01,-6.951694e+01,-2.019554e+02, 4.268890e+02,-4.394719e+01, 0.000000e+00].
+Running theta=[ 3.708679e+11,-1.470657e+02,-2.249428e+11,-1.283121e+01,-1.521849e+02,-1.729141e+02, 9.452792e+01, 1.633268e+01,-3.233683e+01, 8.772984e+01,-7.421254e+01,-6.348578e+01,-1.843893e+02, 3.897564e+02,-4.013732e+01, 0.000000e+00].
+Running theta=[ 3.355472e+11,-1.330594e+02,-2.035196e+11,-1.161695e+01,-1.376697e+02,-1.564915e+02, 8.555307e+01, 1.480279e+01,-2.921799e+01, 7.939971e+01,-6.718522e+01,-5.745463e+01,-1.668232e+02, 3.526239e+02,-3.632745e+01, 0.000000e+00].
+Running theta=[ 3.002264e+11,-1.190532e+02,-1.820965e+11,-1.040269e+01,-1.231546e+02,-1.400689e+02, 7.657822e+01, 1.327290e+01,-2.609916e+01, 7.106957e+01,-6.015790e+01,-5.142347e+01,-1.492571e+02, 3.154913e+02,-3.251758e+01, 0.000000e+00].
+Running theta=[ 2.649057e+11,-1.050469e+02,-1.606734e+11,-9.188435e+00,-1.086394e+02,-1.236462e+02, 6.760337e+01, 1.174301e+01,-2.298032e+01, 6.273943e+01,-5.313058e+01,-4.539231e+01,-1.316910e+02, 2.783588e+02,-2.870771e+01, 0.000000e+00].
+Running theta=[ 2.295849e+11,-9.104067e+01,-1.392503e+11,-7.974175e+00,-9.412426e+01,-1.072236e+02, 5.862852e+01, 1.021312e+01,-1.986148e+01, 5.440930e+01,-4.610326e+01,-3.936116e+01,-1.141248e+02, 2.412262e+02,-2.489783e+01, 0.000000e+00].
+Running theta=[ 1.942642e+11,-7.703442e+01,-1.178272e+11,-6.759915e+00,-7.960910e+01,-9.080095e+01, 4.965367e+01, 8.683224e+00,-1.674265e+01, 4.607916e+01,-3.907594e+01,-3.333000e+01,-9.655874e+01, 2.040937e+02,-2.108796e+01, 0.000000e+00].
+Running theta=[ 1.589434e+11,-6.302816e+01,-9.640404e+10,-5.545655e+00,-6.509394e+01,-7.437831e+01, 4.067883e+01, 7.153332e+00,-1.362381e+01, 3.774902e+01,-3.204862e+01,-2.729884e+01,-7.899263e+01, 1.669611e+02,-1.727809e+01, 0.000000e+00].
+Running theta=[ 1.236226e+11,-4.902190e+01,-7.498092e+10,-4.331395e+00,-5.057878e+01,-5.795567e+01, 3.170398e+01, 5.623440e+00,-1.050497e+01, 2.941889e+01,-2.502130e+01,-2.126768e+01,-6.142651e+01, 1.298286e+02,-1.346822e+01, 0.000000e+00].
+Running theta=[ 8.830189e+10,-3.501564e+01,-5.355780e+10,-3.117135e+00,-3.606362e+01,-4.153303e+01, 2.272913e+01, 4.093548e+00,-7.386137e+00, 2.108875e+01,-1.799398e+01,-1.523653e+01,-4.386040e+01, 9.269602e+01,-9.658346e+00, 0.000000e+00].
+Running theta=[ 5.298113e+10,-2.100939e+01,-3.213468e+10,-1.902876e+00,-2.154846e+01,-2.511039e+01, 1.375428e+01, 2.563656e+00,-4.267300e+00, 1.275861e+01,-1.096667e+01,-9.205371e+00,-2.629429e+01, 5.556347e+01,-5.848474e+00, 0.000000e+00].
+Running theta=[ 1.766038e+10,-7.003129e+00,-1.071156e+10,-6.886157e-01,-7.033296e+00,-8.687752e+00, 4.779432e+00, 1.033764e+00,-1.148464e+00, 4.428476e+00,-3.939346e+00,-3.174214e+00,-8.728180e+00, 1.843092e+01,-2.038602e+00, 0.000000e+00].
+.
+Bridge sampling finished. Collating...
+Bridging finished.
+
+This model was fit using MCMC.  To examine model diagnostics and check
+for degeneracy, use the mcmc.diagnostics() function.</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(ergm.model)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Call:
+ergm(formula = consult ~ edges + mutual + gwesp(0.5, fixed = T) + 
+    nodematch("gender") + nodematch("region") + nodematch("orglevel") + 
+    nodeifactor("orglevel") + nodeofactor("orglevel") + absdiff("orglevel"), 
+    control = control.ergm(MCMC.samplesize = 5000, MCMC.burnin = 10000, 
+        MCMLE.maxit = 10), verbose = T)
+
+Monte Carlo Maximum Likelihood Results:
+
+                         Estimate Std. Error MCMC %    z value Pr(&gt;|z|)    
+edges                   5.651e+11  1.981e-02    100  2.852e+13   &lt;1e-04 ***
+mutual                 -2.241e+02  1.446e-02    100 -1.549e+04   &lt;1e-04 ***
+gwesp.OTP.fixed.0.5    -3.428e+11  1.202e-02    100 -2.852e+13   &lt;1e-04 ***
+nodematch.gender       -1.951e+01  1.351e-02    100 -1.444e+03   &lt;1e-04 ***
+nodematch.region       -2.320e+02  1.298e-02    100 -1.787e+04   &lt;1e-04 ***
+nodematch.orglevel     -2.632e+02  2.277e-02    100 -1.156e+04   &lt;1e-04 ***
+nodeifactor.orglevel.2  1.439e+02  2.534e-02    100  5.677e+03   &lt;1e-04 ***
+nodeifactor.orglevel.3  2.475e+01  2.542e-02    100  9.737e+02   &lt;1e-04 ***
+nodeifactor.orglevel.4 -4.949e+01  2.373e-02    100 -2.085e+03   &lt;1e-04 ***
+nodeifactor.orglevel.5  1.335e+02  2.980e-02    100  4.482e+03   &lt;1e-04 ***
+nodeofactor.orglevel.2 -1.129e+02  2.456e-02    100 -4.595e+03   &lt;1e-04 ***
+nodeofactor.orglevel.3 -9.666e+01  2.417e-02    100 -4.000e+03   &lt;1e-04 ***
+nodeofactor.orglevel.4 -2.810e+02  2.222e-02    100 -1.265e+04   &lt;1e-04 ***
+nodeofactor.orglevel.5  5.940e+02  2.745e-02    100  2.164e+04   &lt;1e-04 ***
+absdiff.orglevel       -6.109e+01  1.038e-02    100 -5.886e+03   &lt;1e-04 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+     Null Deviance: 2.274e+03  on 1640  degrees of freedom
+ Residual Deviance: 4.479e+14  on 1625  degrees of freedom
+ 
+AIC: 4.479e+14  BIC: 4.479e+14  (Smaller is better. MC Std. Err. = 5.98e+11)
+Warnings:
+
+ * The following linear dependence has been detected among the model
+   statistics and/or estimating functions:
+
+   16568/10049 * edges = gwesp.OTP.fixed.0.5</code></pre>
+</div>
+</div>
+<p>Here are the results provided for the questions:</p>
+<div class="cell">
+<pre class="text cell-code"><code>Monte Carlo Maximum Likelihood Results:
+
+                         Estimate Std. Error MCMC %    z value Pr(&gt;|z|)    
+edges                  -4.064e+12  4.939e-01      0 -8.229e+12  &lt; 1e-04 ***
+mutual                  4.247e+00  5.186e-01      0  8.189e+00  &lt; 1e-04 ***
+gwesp.OTP.fixed.0.5     2.465e+12  2.995e-01      0  8.229e+12  &lt; 1e-04 ***
+nodematch.gender        1.404e-01  2.384e-01      1  5.890e-01 0.555892    
+nodematch.region       -9.278e-01  2.830e-01      1 -3.278e+00 0.001045 ** 
+nodematch.orglevel      1.050e+00  4.258e-01      1  2.467e+00 0.013635 *  
+nodeifactor.orglevel.2  6.605e-01  8.150e-01      0  8.100e-01 0.417693    
+nodeifactor.orglevel.3  9.048e-01  8.049e-01      0  1.124e+00 0.260950    
+nodeifactor.orglevel.4  1.721e+00  7.317e-01      0  2.352e+00 0.018663 *  
+nodeifactor.orglevel.5  8.214e-01  1.077e+00      0  7.620e-01 0.445845    
+nodeofactor.orglevel.2  1.688e+00  8.093e-01      0  2.086e+00 0.037010 *  
+nodeofactor.orglevel.3  3.023e+00  8.392e-01      0  3.602e+00 0.000315 ***
+nodeofactor.orglevel.4  2.141e+00  7.792e-01      0  2.748e+00 0.005992 ** 
+nodeofactor.orglevel.5 -1.358e+00  1.139e+00      0 -1.193e+00 0.232937    
+absdiff.orglevel        5.002e-01  1.642e-01      1  3.045e+00 0.002323 ** 
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+     Null Deviance: 2.274e+03  on 1640  degrees of freedom
+ Residual Deviance: 4.548e+14  on 1625  degrees of freedom</code></pre>
+</div>
+<p>Using the results provided, here are the answers to the questions:</p>
+<div class="cell">
+<pre class="text cell-code"><code>•1: Based on visual inspection only, there seems to be a regional homophily between nodes, meaning that people from the same region seem to prefer asking each other for help. We can see a clear divide between orange nodes (Europe) and red ones (USA). Visually, the other two representations do not seem to portray homophily.
+•2: The Monte Carlo Maximum Likelihood results are not significant for gender matching, meaning that being part of the same gender actually does not affect your odds of asking questions to each other (0.555892).
+•3: The Monte Carlo Maximum Likelihood results are significant but negative for region matching, meaning that being part of the same region actually negatively affects the odds of asking questions to each other (estimate = -9.278e-01; 0.001045**). This suggest regional heterophily.
+•4: It is difficult to visually guess homophily or heterophily at an organizational level. The ERGM output on the other hand indicates that there is moderate positional homophily (0.013635*), meaning that people at same organizational level tend to ask more questions to each other. At the same time, the "absdiff.orglevel" indicates a strong effect on positional proximity (0.002323**), meaning that people that are close to each other (and not just at the same level) have higher odds of asking questions to each other. More precisely, we can infer that being level 3 in the organization significantly raises the odds of of asking questions to others (0.000315***), same for level 4 &amp; 2 but with a more moderate effect (respectively 0.005992** &amp; 0.037010*). On the receiving end of questions, being at level 4 moderately increases the odds of receiving questions (0.018663*)
+•5: Reading nodeifactor tests, vertices at the 4th organizational level seem to moderately attract more edges (0.018663*). This suggests preferential attachment, meaning that being at the 4rth organizational level moderately raises your odds of receiving questions from others
+•6: The nodeofactor() terms measures the effect of factor attributes on outward edges. In more substantive terms, it measure how factor attributes affect the likelihood of developping relationships with others.
+•7: The absdiff() term measures the homophily based on continuous attributes instead of binary ones. In our case, it measures homophily across different organizational level, and whether being at closer levels raises the odds of formining relationships.</code></pre>
+</div>
+</section>
+<section id="on-your-own" class="level2">
+<h2 class="anchored" data-anchor-id="on-your-own">On your own</h2>
+<p>Running the ERGM model on my own led to an error message (Error in ergm.MCMLE(init, s, s.obs, control = control, verbose = verbose, : Unconstrained MCMC sampling did not mix at all. Optimization cannot continue.). Writing the summary despite the message error shows unconvincing results:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Monte Carlo Maximum Likelihood Results:</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="co">#   Estimate Std. Error MCMC %    z value Pr(&gt;|z|)    </span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="co">#  edges                   5.651e+11  1.981e-02    100  2.852e+13   &lt;1e-04 ***</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="co">#  mutual                 -2.241e+02  1.446e-02    100 -1.549e+04   &lt;1e-04 ***</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a><span class="co">#  gwesp.OTP.fixed.0.5    -3.428e+11  1.202e-02    100 -2.852e+13   &lt;1e-04 ***</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a><span class="co">#  nodematch.gender       -1.951e+01  1.351e-02    100 -1.444e+03   &lt;1e-04 ***</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a><span class="co">#  nodematch.region       -2.320e+02  1.298e-02    100 -1.787e+04   &lt;1e-04 ***</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a><span class="co">#  nodematch.orglevel     -2.632e+02  2.277e-02    100 -1.156e+04   &lt;1e-04 ***</span></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a><span class="co">#  nodeifactor.orglevel.2  1.439e+02  2.534e-02    100  5.677e+03   &lt;1e-04 ***</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a><span class="co">#  nodeifactor.orglevel.3  2.475e+01  2.542e-02    100  9.737e+02   &lt;1e-04 ***</span></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a><span class="co">#  nodeifactor.orglevel.4 -4.949e+01  2.373e-02    100 -2.085e+03   &lt;1e-04 ***</span></span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a><span class="co">#  nodeifactor.orglevel.5  1.335e+02  2.980e-02    100  4.482e+03   &lt;1e-04 ***</span></span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a><span class="co">#  nodeofactor.orglevel.2 -1.129e+02  2.456e-02    100 -4.595e+03   &lt;1e-04 ***</span></span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a><span class="co">#  nodeofactor.orglevel.3 -9.666e+01  2.417e-02    100 -4.000e+03   &lt;1e-04 ***</span></span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a><span class="co">#  nodeofactor.orglevel.4 -2.810e+02  2.222e-02    100 -1.265e+04   &lt;1e-04 ***</span></span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a><span class="co">#  nodeofactor.orglevel.5  5.940e+02  2.745e-02    100  2.164e+04   &lt;1e-04 ***</span></span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a><span class="co">#  absdiff.orglevel       -6.109e+01  1.038e-02    100 -5.886e+03   &lt;1e-04 ***</span></span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a><span class="co">#  ---</span></span>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a><span class="co">#  Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1</span></span>
+<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a><span class="co"># Null Deviance: 2.274e+03  on 1640  degrees of freedom</span></span>
+<span id="cb17-23"><a href="#cb17-23" aria-hidden="true" tabindex="-1"></a><span class="co"># Residual Deviance: 4.479e+14  on 1625  degrees of freedom</span></span>
+<span id="cb17-24"><a href="#cb17-24" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb17-25"><a href="#cb17-25" aria-hidden="true" tabindex="-1"></a><span class="co"># AIC: 4.479e+14  BIC: 4.479e+14  (Smaller is better. MC Std. Err. = 5.98e+11)</span></span>
+<span id="cb17-26"><a href="#cb17-26" aria-hidden="true" tabindex="-1"></a><span class="co"># Warnings:</span></span>
+<span id="cb17-27"><a href="#cb17-27" aria-hidden="true" tabindex="-1"></a><span class="co">#  </span></span>
+<span id="cb17-28"><a href="#cb17-28" aria-hidden="true" tabindex="-1"></a><span class="co">#  * The following linear dependence has been detected among the model statistics and/or estimating functions:</span></span>
+<span id="cb17-29"><a href="#cb17-29" aria-hidden="true" tabindex="-1"></a><span class="co">#  </span></span>
+<span id="cb17-30"><a href="#cb17-30" aria-hidden="true" tabindex="-1"></a><span class="co">#  16568/10049 * edges = gwesp.OTP.fixed.0.5</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Using a simpler model, removing gwesp specification showed new &amp; different results:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">510</span>)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>ergm.model <span class="ot">&lt;-</span> <span class="fu">ergm</span>(consult <span class="sc">~</span> edges <span class="sc">+</span> mutual <span class="sc">+</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>                     <span class="fu">nodematch</span>(<span class="st">"gender"</span>) <span class="sc">+</span> <span class="fu">nodematch</span>(<span class="st">"region"</span>) <span class="sc">+</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>                     <span class="fu">nodematch</span>(<span class="st">"orglevel"</span>) <span class="sc">+</span> <span class="fu">nodeifactor</span>(<span class="st">"orglevel"</span>) <span class="sc">+</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>                     <span class="fu">nodeofactor</span>(<span class="st">"orglevel"</span>) <span class="sc">+</span> <span class="fu">absdiff</span>(<span class="st">"orglevel"</span>), <span class="at">control =</span> <span class="fu">control.ergm</span>(</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>                       <span class="at">MCMC.samplesize =</span> <span class="dv">5000</span>,</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>                       <span class="at">MCMC.burnin =</span> <span class="dv">10000</span>,</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>                       <span class="at">MCMLE.maxit =</span> <span class="dv">10</span></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>                     ), </span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>                   <span class="at">verbose =</span> T)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Evaluating network in model.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Initializing unconstrained Metropolis-Hastings proposal: 'ergm:MH_SPDyad'.
+Initializing model...
+Model initialized.
+Using initial method 'MPLE'.
+Initial parameters provided by caller: None.
+  number of free parameters: 14
+  number of fixed parameters: 0
+Fitting initial model.
+Starting maximum pseudolikelihood estimation (MPLE):
+Obtaining the responsible dyads.
+Evaluating the predictor and response matrix.
+Maximizing the pseudolikelihood.
+Finished MPLE.
+Starting Monte Carlo maximum likelihood estimation (MCMLE):
+Density guard set to 10000 from an initial count of 168 edges.
+
+Iteration 1 of at most 10 with free parameter vector:
+                 edges                 mutual       nodematch.gender 
+           -3.35790556             3.96650700            -0.02411897 
+      nodematch.region     nodematch.orglevel nodeifactor.orglevel.2 
+            0.14212366            -0.32042434             0.91533749 
+nodeifactor.orglevel.3 nodeifactor.orglevel.4 nodeifactor.orglevel.5 
+            0.61636765             0.59148024             0.81681092 
+nodeofactor.orglevel.2 nodeofactor.orglevel.3 nodeofactor.orglevel.4 
+           -0.93136061            -0.38813142            -0.26536741 
+nodeofactor.orglevel.5       absdiff.orglevel 
+           -0.16190383            -0.08948597 
+Starting unconstrained MCMC...
+Sampling ■■■■■■■■■■■■■■■■                  49% |  ETA:  2s
+Back from unconstrained MCMC.
+New interval = 512.
+Estimated gradient of the log-likelihood:
+                 edges                 mutual       nodematch.gender 
+            -1.7985263             -1.2370526             -2.5172632 
+      nodematch.region     nodematch.orglevel nodeifactor.orglevel.2 
+            -0.6383158              2.3406316              0.6705263 
+nodeifactor.orglevel.3 nodeifactor.orglevel.4 nodeifactor.orglevel.5 
+            -1.5004211              2.4915789             -4.5031579 
+nodeofactor.orglevel.2 nodeofactor.orglevel.3 nodeofactor.orglevel.4 
+             0.9768421             -2.3183158              2.5370526 
+nodeofactor.orglevel.5       absdiff.orglevel 
+            -4.5016842             -4.6709474 
+Starting MCMLE Optimization...
+1 Optimizing with step length 1.0000.
+Using lognormal metric (see control.ergm function).
+Using log-normal approx (no optim)
+The log-likelihood improved by 1.2723.
+Estimating equations are not within tolerance region.
+
+Iteration 2 of at most 10 with free parameter vector:
+                 edges                 mutual       nodematch.gender 
+           -3.27655171             3.94587903            -0.05878478 
+      nodematch.region     nodematch.orglevel nodeifactor.orglevel.2 
+            0.14160548            -0.25555766             0.89120237 
+nodeifactor.orglevel.3 nodeifactor.orglevel.4 nodeifactor.orglevel.5 
+            0.58636529             0.60323445             0.57594085 
+nodeofactor.orglevel.2 nodeofactor.orglevel.3 nodeofactor.orglevel.4 
+           -0.92195988            -0.49578885            -0.28514867 
+nodeofactor.orglevel.5       absdiff.orglevel 
+           -0.41602402            -0.07465258 
+Starting unconstrained MCMC...
+Back from unconstrained MCMC.
+New interval = 256.
+Estimated gradient of the log-likelihood:
+                 edges                 mutual       nodematch.gender 
+           -2.37957895            -1.03326316            -1.29684211 
+      nodematch.region     nodematch.orglevel nodeifactor.orglevel.2 
+           -1.31157895            -1.16378947            -1.29831579 
+nodeifactor.orglevel.3 nodeifactor.orglevel.4 nodeifactor.orglevel.5 
+            0.21010526            -0.63410526            -0.44905263 
+nodeofactor.orglevel.2 nodeofactor.orglevel.3 nodeofactor.orglevel.4 
+           -1.41410526             0.04084211            -0.38673684 
+nodeofactor.orglevel.5       absdiff.orglevel 
+           -0.55368421            -2.31221053 
+Starting MCMLE Optimization...
+1 Optimizing with step length 1.0000.
+Using lognormal metric (see control.ergm function).
+Using log-normal approx (no optim)
+Starting MCMC s.e. computation.
+The log-likelihood improved by 0.0712.
+Distance from origin on tolerance region scale: 1.423683 (previously 28.77277).
+Test statistic: T^2 = 32.83715, with 14 free parameter(s) and 993.6671 degrees of freedom.
+Convergence test p-value: 0.0039. Converged with 99% confidence.
+Finished MCMLE.
+Evaluating log-likelihood at the estimate. Initializing model to obtain the list of dyad-independent terms...
+Fitting the dyad-independent submodel...
+Dyad-independent submodel MLE has likelihood -536.9021 at:
+ [1] -2.15472501  0.00000000 -0.08148573  0.22428405 -0.47643262  0.29200793
+ [7]  0.26881856  0.41095461  0.26340708 -0.42568630 -0.15863497  0.05487618
+[13] -0.13535062 -0.13366608  0.00000000
+Bridging between the dyad-independent submodel and the full model...
+Setting up bridge sampling...
+Initializing model and proposals...
+Model and proposals initialized.
+Using 16 bridges: Running theta=[-3.24635235, 3.82127537,-0.06140583, 0.14146883,-0.28639261, 0.87032001, 0.60603158, 0.61136175, 0.56326227,-0.95785406,-0.49001688,-0.27088985,-0.44896709,-0.07459542, 0.00000000].
+Running theta=[-3.17592478, 3.57474148,-0.06270130, 0.14681175,-0.29865326, 0.83300955, 0.58427590, 0.59843226, 0.54391677,-0.92352066,-0.46863740,-0.24987269,-0.42873377,-0.07840643, 0.00000000].
+Running theta=[-3.10549721, 3.32820758,-0.06399678, 0.15215467,-0.31091390, 0.79569910, 0.56252022, 0.58550277, 0.52457128,-0.88918725,-0.44725792,-0.22885552,-0.40850045,-0.08221744, 0.00000000].
+Running theta=[-3.03506964, 3.08167369,-0.06529226, 0.15749759,-0.32317455, 0.75838864, 0.54076454, 0.57257327, 0.50522578,-0.85485385,-0.42587844,-0.20783836,-0.38826713,-0.08602845, 0.00000000].
+Running theta=[-2.96464207, 2.83513979,-0.06658774, 0.16284050,-0.33543520, 0.72107818, 0.51900887, 0.55964378, 0.48588028,-0.82052044,-0.40449897,-0.18682120,-0.36803381,-0.08983946, 0.00000000].
+Running theta=[-2.89421450, 2.58860590,-0.06788321, 0.16818342,-0.34769584, 0.68376773, 0.49725319, 0.54671429, 0.46653479,-0.78618704,-0.38311949,-0.16580404,-0.34780049,-0.09365047, 0.00000000].
+Running theta=[-2.82378693, 2.34207200,-0.06917869, 0.17352634,-0.35995649, 0.64645727, 0.47549751, 0.53378479, 0.44718929,-0.75185364,-0.36174001,-0.14478687,-0.32756717,-0.09746148, 0.00000000].
+Running theta=[-2.75335936, 2.09553811,-0.07047417, 0.17886925,-0.37221713, 0.60914681, 0.45374183, 0.52085530, 0.42784379,-0.71752023,-0.34036053,-0.12376971,-0.30733385,-0.10127249, 0.00000000].
+Running theta=[-2.68293179, 1.84900421,-0.07176965, 0.18421217,-0.38447778, 0.57183636, 0.43198615, 0.50792581, 0.40849830,-0.68318683,-0.31898105,-0.10275255,-0.28710053,-0.10508350, 0.00000000].
+Running theta=[-2.61250422, 1.60247032,-0.07306513, 0.18955509,-0.39673843, 0.53452590, 0.41023047, 0.49499631, 0.38915280,-0.64885342,-0.29760158,-0.08173538,-0.26686720,-0.10889451, 0.00000000].
+Running theta=[-2.54207665, 1.35593642,-0.07436060, 0.19489801,-0.40899907, 0.49721544, 0.38847479, 0.48206682, 0.36980731,-0.61452002,-0.27622210,-0.06071822,-0.24663388,-0.11270552, 0.00000000].
+Running theta=[-2.47164908, 1.10940253,-0.07565608, 0.20024092,-0.42125972, 0.45990499, 0.36671912, 0.46913733, 0.35046181,-0.58018662,-0.25484262,-0.03970106,-0.22640056,-0.11651653, 0.00000000].
+Running theta=[-2.40122151, 0.86286863,-0.07695156, 0.20558384,-0.43352036, 0.42259453, 0.34496344, 0.45620784, 0.33111631,-0.54585321,-0.23346314,-0.01868389,-0.20616724,-0.12032754, 0.00000000].
+Running theta=[-2.330793937, 0.616334737,-0.078247037, 0.210926756,-0.445781009, 0.385284073, 0.323207759, 0.443278343, 0.311770817,-0.511519808,-0.212083664, 0.002333269,-0.185933919,-0.124138552, 0.000000000].
+Running theta=[-2.26036637, 0.36980084,-0.07954251, 0.21626967,-0.45804166, 0.34797362, 0.30145208, 0.43034885, 0.29242532,-0.47718640,-0.19070419, 0.02335043,-0.16570060,-0.12794956, 0.00000000].
+Running theta=[-2.18993880, 0.12326695,-0.08083799, 0.22161259,-0.47030230, 0.31066316, 0.27969640, 0.41741936, 0.27307982,-0.44285300,-0.16932471, 0.04436759,-0.14546728,-0.13176057, 0.00000000].
+.
+Bridge sampling finished. Collating...
+Bridging finished.
+
+This model was fit using MCMC.  To examine model diagnostics and check
+for degeneracy, use the mcmc.diagnostics() function.</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(ergm.model)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Call:
+ergm(formula = consult ~ edges + mutual + nodematch("gender") + 
+    nodematch("region") + nodematch("orglevel") + nodeifactor("orglevel") + 
+    nodeofactor("orglevel") + absdiff("orglevel"), control = control.ergm(MCMC.samplesize = 5000, 
+    MCMC.burnin = 10000, MCMLE.maxit = 10), verbose = T)
+
+Monte Carlo Maximum Likelihood Results:
+
+                       Estimate Std. Error MCMC % z value Pr(&gt;|z|)    
+edges                  -3.28157    0.45510      0  -7.211   &lt;1e-04 ***
+mutual                  3.94454    0.31121      0  12.675   &lt;1e-04 ***
+nodematch.gender       -0.06076    0.14093      0  -0.431   0.6664    
+nodematch.region        0.13880    0.12556      0   1.105   0.2690    
+nodematch.orglevel     -0.28026    0.23816      0  -1.177   0.2393    
+nodeifactor.orglevel.2  0.88898    0.41665      0   2.134   0.0329 *  
+nodeifactor.orglevel.3  0.61691    0.40831      0   1.511   0.1308    
+nodeifactor.orglevel.4  0.61783    0.38768      0   1.594   0.1110    
+nodeifactor.orglevel.5  0.57294    0.51548      0   1.111   0.2664    
+nodeofactor.orglevel.2 -0.97502    0.39489      0  -2.469   0.0135 *  
+nodeofactor.orglevel.3 -0.50071    0.37262      0  -1.344   0.1790    
+nodeofactor.orglevel.4 -0.28140    0.34811      0  -0.808   0.4189    
+nodeofactor.orglevel.5 -0.45908    0.47931      0  -0.958   0.3382    
+absdiff.orglevel       -0.07269    0.10830      0  -0.671   0.5021    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+     Null Deviance: 2273.5  on 1640  degrees of freedom
+ Residual Deviance:  883.9  on 1626  degrees of freedom
+ 
+AIC: 911.9  BIC: 987.5  (Smaller is better. MC Std. Err. = 0.6663)</code></pre>
+</div>
+</div>
+<div class="cell">
+<pre class="text cell-code"><code>Monte Carlo Maximum Likelihood Results:
+
+                       Estimate Std. Error MCMC % z value Pr(&gt;|z|)    
+edges                  -3.27777    0.47170      0  -6.949   &lt;1e-04 ***
+mutual                  3.94090    0.31673      0  12.442   &lt;1e-04 ***
+nodematch.gender       -0.05306    0.13973      0  -0.380   0.7042    
+nodematch.region        0.13823    0.12806      0   1.079   0.2804    
+nodematch.orglevel     -0.28713    0.24681      0  -1.163   0.2447    
+nodeifactor.orglevel.2  0.87747    0.42041      0   2.087   0.0369 *  
+nodeifactor.orglevel.3  0.60088    0.40895      0   1.469   0.1417    
+nodeifactor.orglevel.4  0.60948    0.37956      0   1.606   0.1083    
+nodeifactor.orglevel.5  0.55657    0.51831      0   1.074   0.2829    
+nodeofactor.orglevel.2 -0.94591    0.38738      0  -2.442   0.0146 *  
+nodeofactor.orglevel.3 -0.47655    0.37009      0  -1.288   0.1979    
+nodeofactor.orglevel.4 -0.27701    0.34061      0  -0.813   0.4161    
+nodeofactor.orglevel.5 -0.44775    0.47656      0  -0.940   0.3474    
+absdiff.orglevel       -0.07782    0.11385      0  -0.684   0.4943    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+     Null Deviance: 2273.5  on 1640  degrees of freedom
+ Residual Deviance:  880.1  on 1626  degrees of freedom
+ 
+AIC: 908.1  BIC: 983.8  (Smaller is better. MC Std. Err. = 0.6431)</code></pre>
+</div>
+<div class="cell">
+<pre class="text cell-code"><code>These new results contredict previous analysis: only one organizational level significantly affect the odds of asking or receiving questions: being level 2 diminishes odds of asking for help (estimate=-0.94591; p=0.0146*) and raises odds of receiving questions (estimate=0.87747; p=0.0369*)</code></pre>
+</div>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
