@@ -1,6 +1,6 @@
 ---
 title: "LEDU_exercise2"
-format: html
+format: pdf
 editor: visual
 ---
 
