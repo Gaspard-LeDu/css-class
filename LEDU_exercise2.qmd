@@ -8,7 +8,7 @@ editor: visual
 
 Here is the code provided:
 
-```{text}
+```{r}
 pacman::p_load(network, ergm, tnet, install = T)
 
 consult <- Cross.Parker.Consulting.net.info
