@@ -36,8 +36,7 @@ summary(ergm.model)
 
 Here are the results provided for the questions:
 
-```{r}
-'''
+```{text}
 Monte Carlo Maximum Likelihood Results:
 
                          Estimate Std. Error MCMC %    z value Pr(>|z|)    
@@ -61,12 +60,11 @@ Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’
 
      Null Deviance: 2.274e+03  on 1640  degrees of freedom
  Residual Deviance: 4.548e+14  on 1625  degrees of freedom
-'''
 ```
 
 Using the results provided, here are the answers to the questions:
 
-```{markdown}
+```{text}
 •1: Based on visual inspection only, there seems to be a regional homophily between nodes, meaning that people from the same region seem to prefer asking each other for help. We can see a clear divide between orange nodes (Europe) and red ones (USA). Visually, the other two representations do not seem to portray homophily.
 •2: The Monte Carlo Maximum Likelihood results are not significant for gender matching, meaning that being part of the same gender actually does not affect your odds of asking questions to each other (0.555892).
 •3: The Monte Carlo Maximum Likelihood results are significant but negative for region matching, meaning that being part of the same region actually negatively affects the odds of asking questions to each other (estimate = -9.278e-01; 0.001045**). This suggest regional heterophily.
@@ -78,7 +76,7 @@ Using the results provided, here are the answers to the questions:
 
 ## On your own
 
-Running the ERGM model on my own led to an error message (Error in ergm.MCMLE(init, s, s.obs, control = control, verbose = verbose,  : Unconstrained MCMC sampling did not mix at all. Optimization cannot continue.). Writing the summary despite the message error shows unconvincing results:
+Running the ERGM model on my own led to an error message (Error in ergm.MCMLE(init, s, s.obs, control = control, verbose = verbose, : Unconstrained MCMC sampling did not mix at all. Optimization cannot continue.). Writing the summary despite the message error shows unconvincing results:
 
 ```{r}
 # Monte Carlo Maximum Likelihood Results:
@@ -129,7 +127,7 @@ ergm.model <- ergm(consult ~ edges + mutual +
 summary(ergm.model)
 ```
 
-```{markdown}
+```{text}
 Monte Carlo Maximum Likelihood Results:
 
                        Estimate Std. Error MCMC % z value Pr(>|z|)    
@@ -156,6 +154,6 @@ Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’
 AIC: 908.1  BIC: 983.8  (Smaller is better. MC Std. Err. = 0.6431)
 ```
 
-```{markdown}
+```{text}
 These new results contredict previous analysis: only one organizational level significantly affect the odds of asking or receiving questions: being level 2 diminishes odds of asking for help (estimate=-0.94591; p=0.0146*) and raises odds of receiving questions (estimate=0.87747; p=0.0369*)
 ```
