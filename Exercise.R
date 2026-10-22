@@ -1,0 +1,123 @@
+# Cell 1
+pacman::p_load(network, ergm, tnet, install = T)
+
+consult <- Cross.Parker.Consulting.net.info
+consult$w <- ifelse(consult$w < 4, 0, 1)
+consult <- consult[consult$w == 1, ]
+consult <- network(consult[, 1:2], directed = T)
+consult %v% "gender" <- Cross.Parker.Consulting.node.gender
+consult %v% "region" <- Cross.Parker.Consulting.node.region
+consult %v% "orglevel" <- Cross.Parker.Consulting.node.orglevel
+
+# Cell 2
+set.seed(510)
+ergm.model <- ergm(consult ~ edges + mutual + gwesp(0.5, fixed = T) +
+                     nodematch("gender") + nodematch("region") +
+                     nodematch("orglevel") + absdiff("orglevel"), control = control.ergm(
+                       MCMC.samplesize = 5000,
+                       MCMC.burnin = 10000,
+                       MCMLE.maxit = 10
+                     ), 
+                   verbose = T)
+summary(ergm.model)
+
+# Questions:
+# Questions will be answered using class output due to a likely overfitting problem
+# 1: Based on visual inspection only, there seems to be a regional homophily between nodes, meaning that people from the same region seem to prefer asking each other for help. We can see a clear divide between orange nodes (Europe) and red ones (USA). Visually, the other two representations do not seem to portray homophily.
+# 2: The Monte Carlo Maximum Likelihood results are not significant for gender matching, meaning that being part of the same gender actually does not affect your odds of asking questions to each other (0.555892).
+# 3: The Monte Carlo Maximum Likelihood results are significant but negative for region matching, meaning that being part of the same region actually negatively affects the odds of asking questions to each other (estimate = -9.278e-01; 0.001045**). This suggest regional heterophily.
+# 4: It is difficult to visually guess homophily or heterophily at an organizational level. The ERGM output on the other hand indicates that there is moderate positional homophily (0.013635*), meaning that people at same organizational level tend to ask more questions to each other. At the same time, the "absdiff.orglevel" indicates a strong effect on positional proximity (0.002323**), meaning that people that are close to each other (and not just at the same level) have higher odds of asking questions to each other. More precisely, we can infer that being level 3 in the organization significantly raises the odds of of asking questions to others (0.000315***), same for level 4 & 2 but with a more moderate effect (respectively 0.005992** & 0.037010*). On the receiving end of questions, being at level 4 moderately increases the odds of receiving questions (0.018663*)
+# 5: Reading nodeifactor tests, vertices at the 4th organizational level seem to moderately attract more edges (0.018663*). This suggests preferential attachment, meaning that being at the 4rth organizational level moderately raises your odds of receiving questions from others
+# 6: The nodeofactor() terms measures the effect of factor attributes on outward edges. In more substantive terms, it measure how factor attributes affect the likelihood of developping relationships with others.
+# 7: The absdiff() term measures the homophily based on continuous attributes instead of binary ones. In our case, it measures homophily across different organizational level, and whether being at closer levels raises the odds of formining relationships.
+
+set.seed(510)
+ergm.model <- ergm(consult ~ edges + mutual + gwesp(0.5, fixed = T) +
+                     nodematch("gender") + nodematch("region") +
+                     nodematch("orglevel") + nodeifactor("orglevel") +
+                     nodeofactor("orglevel") + absdiff("orglevel"), control = control.ergm(
+                       MCMC.samplesize = 5000,
+                       MCMC.burnin = 10000,
+                       MCMLE.maxit = 10
+                     ), 
+                   verbose = T)
+summary(ergm.model)
+
+# Running ERGM model led to an error message (Error in ergm.MCMLE(init, s, s.obs, control = control, verbose = verbose,  : Unconstrained MCMC sampling did not mix at all. Optimization cannot continue.)
+# Writing the summary despite the message error shows unconvincing results:
+
+# Monte Carlo Maximum Likelihood Results:
+  
+#   Estimate Std. Error MCMC %    z value Pr(>|z|)    
+#  edges                   5.651e+11  1.981e-02    100  2.852e+13   <1e-04 ***
+#  mutual                 -2.241e+02  1.446e-02    100 -1.549e+04   <1e-04 ***
+#  gwesp.OTP.fixed.0.5    -3.428e+11  1.202e-02    100 -2.852e+13   <1e-04 ***
+#  nodematch.gender       -1.951e+01  1.351e-02    100 -1.444e+03   <1e-04 ***
+#  nodematch.region       -2.320e+02  1.298e-02    100 -1.787e+04   <1e-04 ***
+#  nodematch.orglevel     -2.632e+02  2.277e-02    100 -1.156e+04   <1e-04 ***
+#  nodeifactor.orglevel.2  1.439e+02  2.534e-02    100  5.677e+03   <1e-04 ***
+#  nodeifactor.orglevel.3  2.475e+01  2.542e-02    100  9.737e+02   <1e-04 ***
+#  nodeifactor.orglevel.4 -4.949e+01  2.373e-02    100 -2.085e+03   <1e-04 ***
+#  nodeifactor.orglevel.5  1.335e+02  2.980e-02    100  4.482e+03   <1e-04 ***
+#  nodeofactor.orglevel.2 -1.129e+02  2.456e-02    100 -4.595e+03   <1e-04 ***
+#  nodeofactor.orglevel.3 -9.666e+01  2.417e-02    100 -4.000e+03   <1e-04 ***
+#  nodeofactor.orglevel.4 -2.810e+02  2.222e-02    100 -1.265e+04   <1e-04 ***
+#  nodeofactor.orglevel.5  5.940e+02  2.745e-02    100  2.164e+04   <1e-04 ***
+#  absdiff.orglevel       -6.109e+01  1.038e-02    100 -5.886e+03   <1e-04 ***
+#  ---
+#  Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+#
+# Null Deviance: 2.274e+03  on 1640  degrees of freedom
+# Residual Deviance: 4.479e+14  on 1625  degrees of freedom
+#
+# AIC: 4.479e+14  BIC: 4.479e+14  (Smaller is better. MC Std. Err. = 5.98e+11)
+# Warnings:
+#  
+#  * The following linear dependence has been detected among the model statistics and/or estimating functions:
+#  
+#  16568/10049 * edges = gwesp.OTP.fixed.0.5
+
+# ---
+
+# Removing the gwesp specification to simplify the model makes the error message disapear
+
+set.seed(510)
+ergm.model <- ergm(consult ~ edges + mutual +
+                     nodematch("gender") + nodematch("region") +
+                     nodematch("orglevel") + nodeifactor("orglevel") +
+                     nodeofactor("orglevel") + absdiff("orglevel"), control = control.ergm(
+                       MCMC.samplesize = 5000,
+                       MCMC.burnin = 10000,
+                       MCMLE.maxit = 10
+                     ), 
+                   verbose = T)
+summary(ergm.model)
+
+# Here are the results:
+"""
+Monte Carlo Maximum Likelihood Results:
+
+                       Estimate Std. Error MCMC % z value Pr(>|z|)    
+edges                  -3.27777    0.47170      0  -6.949   <1e-04 ***
+mutual                  3.94090    0.31673      0  12.442   <1e-04 ***
+nodematch.gender       -0.05306    0.13973      0  -0.380   0.7042    
+nodematch.region        0.13823    0.12806      0   1.079   0.2804    
+nodematch.orglevel     -0.28713    0.24681      0  -1.163   0.2447    
+nodeifactor.orglevel.2  0.87747    0.42041      0   2.087   0.0369 *  
+nodeifactor.orglevel.3  0.60088    0.40895      0   1.469   0.1417    
+nodeifactor.orglevel.4  0.60948    0.37956      0   1.606   0.1083    
+nodeifactor.orglevel.5  0.55657    0.51831      0   1.074   0.2829    
+nodeofactor.orglevel.2 -0.94591    0.38738      0  -2.442   0.0146 *  
+nodeofactor.orglevel.3 -0.47655    0.37009      0  -1.288   0.1979    
+nodeofactor.orglevel.4 -0.27701    0.34061      0  -0.813   0.4161    
+nodeofactor.orglevel.5 -0.44775    0.47656      0  -0.940   0.3474    
+absdiff.orglevel       -0.07782    0.11385      0  -0.684   0.4943    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+     Null Deviance: 2273.5  on 1640  degrees of freedom
+ Residual Deviance:  880.1  on 1626  degrees of freedom
+ 
+AIC: 908.1  BIC: 983.8  (Smaller is better. MC Std. Err. = 0.6431)
+"""
+# These new results contredict previous analysis: only one organizational level significantly affect the odds of asking or receiving questions: being level 2 diminishes odds of asking for help (estimate=-0.94591; p=0.0146*) and raises odds of receiving questions (estimate=0.87747; p=0.0369*)
