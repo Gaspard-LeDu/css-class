@@ -8,7 +8,7 @@ editor: visual
 
 Here is the code provided:
 
-```{r}
+```{text}
 pacman::p_load(network, ergm, tnet, install = T)
 
 consult <- Cross.Parker.Consulting.net.info
@@ -20,7 +20,7 @@ consult %v% "region" <- Cross.Parker.Consulting.node.region
 consult %v% "orglevel" <- Cross.Parker.Consulting.node.orglevel
 ```
 
-```{r}
+```{text}
 set.seed(510)
 ergm.model <- ergm(consult ~ edges + mutual + gwesp(0.5, fixed = T) +
   nodematch("gender") + nodematch("region") +
@@ -78,7 +78,7 @@ Using the results provided, here are the answers to the questions:
 
 Running the ERGM model on my own led to an error message (Error in ergm.MCMLE(init, s, s.obs, control = control, verbose = verbose, : Unconstrained MCMC sampling did not mix at all. Optimization cannot continue.). Writing the summary despite the message error shows unconvincing results:
 
-```{r}
+```{text}
 # Monte Carlo Maximum Likelihood Results:
   
 #   Estimate Std. Error MCMC %    z value Pr(>|z|)    
@@ -113,7 +113,7 @@ Running the ERGM model on my own led to an error message (Error in ergm.MCMLE(in
 
 Using a simpler model, removing gwesp specification showed new & different results:
 
-```{r}
+```{text}
 set.seed(510)
 ergm.model <- ergm(consult ~ edges + mutual +
                      nodematch("gender") + nodematch("region") +
