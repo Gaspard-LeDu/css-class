@@ -107,11 +107,20 @@ ols.results
 #Basic ERGM
 #Data
 data("Krackhardt")
-
 advice.net <- Krackhardt
 
 #Model
+# Setting a seed makes things completely reproduceable
 set.seed(510)
+# Put the network advice.net, then ~ for regression call, edges is for how many edges are in the graph (Y intercept equivalent)
+# Mutual accounts for how many ties are reciprocated
+# Transitivities is how many closed triangles there are
+# The package is premade so the terms make sense, you can scroll through website to get new infos
+# nodeicov is being asked, ocov is asking
+# Age is just an attribute of each node
+# Nodematch looks for homophily between each edge (here question is: "are people interacting at the same level in the company?", ie middle managers between each other, or usually go for upper managers?)
+# MCM samplesize makes it simulate just 5000 ppossible nets
+# Burnin avoids simulating too similar networks
 ergm.model <- ergm(advice.net ~ edges + mutual + transitiveties +
                      nodeicov("Age") + nodeocov("Age") +
                      nodematch("Level"), control = control.ergm(
