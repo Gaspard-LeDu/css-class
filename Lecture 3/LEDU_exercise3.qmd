@@ -1,0 +1,249 @@
+---
+title: "LEDU_exercise3"
+format: pdf
+---
+
+# Latent dirichlet allocation
+
+
+```{r}
+# Copy-pasted code from the exercise's page
+library(pacman)
+library(remotes)
+library(text2map.corpora)
+library(reshape2)
+library(dplyr)
+pacman::p_load(tidyverse,
+               textclean,
+               textstem,
+               stringi,
+               tidytext,
+               text2map,
+               topicmodels,
+               topicdoc,
+               Matrix,
+               forcats,
+               LDAvis,
+               servr,
+               devtools,
+               quanteda,
+               udpipe,
+               textclean,
+               stm,
+               install = T)
+
+devtools::install_github("quanteda/quanteda.corpora")
+library(quanteda.corpora)
+
+data("data_corpus_ungd2017", package = "quanteda.corpora")
+un <- data_corpus_ungd2017
+rm(data_corpus_ungd2017) #rename the file to "un" to make the script cleaner
+
+un <- un |>
+  convert(to = "data.frame") |>
+  drop_na(continent, gdp_per_capita)
+```
+
+```{r}
+# Code copy-pasted from the exercise's page
+un <- un |>
+  mutate(text.clean = stri_trans_general(text, id = "Any-Latin;Latin-ASCII"),
+         text.clean = tolower(text.clean),
+         text.clean = replace_curly_quote(text.clean),
+         text.clean = replace_contraction(text.clean),
+         text.clean = gsub("[[:digit:]]+", " ", text.clean),
+         text.clean = gsub("[[:space:]]+", " ", text.clean),
+         text.clean = trimws(text.clean))
+```
+
+```{r}
+# Code copy-pasted from the exercise's page
+eng <- udpipe_download_model(language = "english-gum")
+ud_eng <- udpipe_load_model(eng$file_model)
+
+un.df.trip <- udpipe_annotate(
+  x = un$text.clean,
+  object = ud_eng) |>
+  as_tibble() |>
+  anti_join(stop_words, by = c("lemma" = "word")) |>
+  select(doc_id, lemma) |>
+  filter(!grepl("[[:punct:]]+", lemma)) |>
+  count(doc_id, lemma)
+```
+
+```{r}
+# Making the document term matrix
+un.dtm <- un.df.trip |>
+  cast_dfm(
+    document = doc_id,
+    term = lemma,
+    value = n) |>
+  dfm_trim(min_docfreq = 0.1,
+           max_docfreq = 0.9,
+           docfreq_type = "prop")
+```
+
+```{r}
+# Question n°1 & n°2
+# Code copy-pasted from the exercise's page
+k_topic <- seq(2, 20, by = 2)
+opts <- list(seed = 67)
+
+lda_2to20 <- lapply(k_topic, function(k) LDA(un.dtm, k, control = opts))
+diag_list <- lapply(lda_2to20, topic_diagnostics, un.dtm, 10)
+names(diag_list) <- k_topic
+df_diag <- bind_rows(diag_list, .id = "K")
+
+df_diag |>
+  group_by(K) |>
+  summarize(coherence = mean(topic_coherence), 
+            exclusivity = mean(topic_exclusivity)) |>
+  ggplot(aes(x = coherence, 
+             y = exclusivity)) +
+  geom_text(aes(label = K)) +
+  labs(x = "Semantic Coherence",
+       y = "Exclusivity")
+
+```
+
+
+It looks like the 6 topics model is the one maximising both semantic coherence (\~-22.5) & exclusivity (\~9.23). Even though one can argue that there are multiple topic models with higher exclusivity (6 in total), only 2 models have close or higher semantic coherence (4 & 2).
+
+
+```{r}
+# Looking at the 6 topic models 10 top terms
+opts <- list(seed = 67)
+lda_6topics <- LDA(un.dtm, k = 6, control = opts)
+terms(lda_6topics, 10)
+```
+
+```{r}
+# Question n°3 (Making a barplot)
+# Preparing the variable first
+library(reshape2)
+topic_plot <- tidy(lda_6topics, matrix = "beta") |>
+  group_by(topic) |>
+  slice_max(beta, n = 10) |>
+  arrange(topic, desc(beta))
+```
+
+```{r}
+# Plotting each plot at a time
+# Not most elegant solution, but minimizes potential issues
+ggplot(filter(topic_plot, topic == 1), aes(x=reorder(term,beta), y=beta)) + geom_col() + ggtitle("#1 Israelian conflicts")
+```
+
+```{r}
+ggplot(filter(topic_plot, topic == 2), aes(x=reorder(term,beta), y=beta)) + geom_col() + ggtitle("#2 International cooperation against climate change")
+```
+
+```{r}
+ggplot(filter(topic_plot, topic == 3), aes(x=reorder(term,beta), y=beta)) + geom_col() + ggtitle("#3 North Korean acquisition of the nuclear weapon")
+```
+
+```{r}
+ggplot(filter(topic_plot, topic == 4), aes(x=reorder(term,beta), y=beta)) + geom_col() + ggtitle("#4 Climate disasters")
+```
+
+```{r}
+ggplot(filter(topic_plot, topic == 5), aes(x=reorder(term,beta), y=beta)) + geom_col() + ggtitle("#5 Regional cooperations")
+```
+The word Africa appears significantly much higher than other terms, suggesting it being the center of the topic
+
+```{r}
+ggplot(filter(topic_plot, topic == 6), aes(x=reorder(term,beta), y=beta)) + geom_col() + ggtitle("#5 African issues")
+```
+
+
+Question n°4: the in class exercise analyzed which topics were more likely to get published in prestigious papers. Here, downstream analysis could be looking for each countries likelihood to discuss a topic such as \#1 Israelian conflitcs one over time. This would require us to retrieve older and more recent statements, allowing for time-series analysis of the issue. But this is just one example of many possibilites"
+
+# Structural topic modeling
+
+```{r}
+# Code copy-pasted from exercise page
+rownames(un) <- paste0("doc", 1:nrow(un))
+un <- un[rownames(un.dtm),]
+```
+
+```{r}
+# Code retrieved from "Mapping texts"
+set.seed(67) 
+# this might take a while!
+stm_env <- stm(documents = un.dtm, K =6, data = un, prevalence = ~gdp_per_capita + continent, verbose =FALSE)
+# Thanks to onyxia, this actually did not take that long
+```
+
+```{r}
+labelTopics(stm_env)
+```
+
+```{r}
+stm_effect <- estimateEffect(c(1, 2) ~gdp_per_capita + continent, stm_env, metadata=un)
+```
+
+```{r}
+# The next step requires stminsights package
+install.packages("stminsights")
+library(stminsights)
+stm_effect <- get_effects(stm_effect, variable ="gdp_per_capita", type ="continuous")|>
+  mutate(Topics = case_when(topic==1~"North Korea",topic==2~"Israel"))
+# Plotting the effects
+stm_effect|>
+  ggplot(aes(x =value,y =proportion,fill =Topics))+geom_ribbon(aes(ymin =lower,ymax =upper),alpha =0.5)+geom_line(aes(linetype =Topics))+labs(x ="gpd_per_capita")
+```
+
+Both topic prevalence show a positive relationship with gdp per capita, with a stronger relationship in North Korea's case. In substantive terms, the more a country's gdp is high, the more Israel et North Korea topics are prevalent in its 2017 UN General Assembly speech. It would be interesting to find a topic that does not follow this trend and comparee the results.
+
+```{r}
+#Restarting the analysis
+stm_effect <- estimateEffect( ~gdp_per_capita + continent, stm_env, metadata=un)
+
+# Code copy-pasted from the class website & adapted to local object names
+stm_effect <- get_effects(stm_effect, variable = "continent",
+                       type = "pointestimate") |>
+  mutate(Topics = case_when(
+    topic == 5 ~ "Africa",
+    topic == 3 ~ "National Welfare")
+  )
+
+# NAs had to be filtered
+stm_effect |>
+  filter(!is.na(Topics)) |>
+  ggplot(aes(x = value, y = proportion, color = value)) +
+  geom_errorbar(aes(ymin = lower, ymax = upper), alpha = 0.5, width = .5) +
+  geom_point() +
+  labs(x = "") +
+  guides(color = "none") +
+  labs(y = "Predicted Topic Prevalence") +
+  facet_wrap(~Topics)
+```
+
+
+Question n°4: the topic of Africa is significantly more prevalent in African speeches (over 0.4 compared to \~0.2 to \~0.375 for Europe, which has closest prevalence), which means African countries tend to discuss more about their own issues. By progressive order of magnitude, Africa is discussed less by Oceanian countries (\~0 to \~0.25), then Americas (\~0.075 to \~0.21), Asia (\~0.15 to \~0.3) and then Europe (\~0.2 to \~0.375). As for the topic of National Welfare, it appears as significantly more prevalent in Africa (\~0.18 to \~0.3) and Americas (\~0.2 to \~0.38) speeches than Europe (0 to \~0.18) and Oceania (negative to \~0.18). The plot still shows that Asian speeches share National Welfare prevalence with Africa and Americas, going from 0.1 to \~0.22. We could infer from this that European & Oceania statements do not focus as much on national welfare compared to Africa & Americas.
+
+
+# On your own
+
+```{r}
+# Question n°1: lets check the 6 topics again through a STM, and then select & label one
+# Copy-pasted & modified from "Mapping texts"
+stm_oyo <- tidy(stm_env, matrix ="beta")|>
+  group_by(topic)|>
+  slice_max(beta,n =6,with_ties =FALSE)|>
+
+summarize(terms =paste0(term,collapse =", "))
+print(stm_oyo,n =10)
+```
+
+The topic previously labelled as climate disasters looks like an interesting one (n°6), lets use it for the next questions (question no2)
+
+
+
+```{r}
+# Question n°2: let's use findThoughts() to see the top 3 statements related to topic 6
+# Line truncation options have been removed to read the entire statements
+corpus_top3 <- findThoughts(stm_env, texts = un$text.clean, topics = 6, n = 3)
+corpus_top3$docs
+```
+
+After further reading, the coherence between pre-established label and actual content of the statement can be confirmed. However, multiple observations emerge from an in depth qualitative reading. First, we discover that all statement were made by island countries, and even two carribean countries (Dominica & Dominican Republic, Fiji on the other hand being in the Pacific). Quantitative analysis did include the word carribeans in its top 10 prevalent words, but was not considered much due to the ambiguity of whether it was related to a specific event or to the statement's authorship. This clears a previous ambiguity. All countries do speak about climate change indeed, and we can now infer that the carribeans were so prevalent due to the Irma hurricane that had just happened before. However, each statement contains notable nuances. Dominica specifically points the responsibility of richer countries in global carbon emissions & the following climate disasters: "we are shouldering the consequences of the actions of others, actions that endanger our very existence and all for the enrichment of a few elsewhere", the tone is also more martial "i come to the general assembly straight from the front line of the war on climate change". Dominican Republic (statement 3) conveys a more cooperative speech, highlighting the importance of solidarity: "we are facing a growing problem that knows no borders and requires the cooperation and solidarity of all of us". Quantitative analysis managed to detect the topic with high accuracy, but the specific metrics used here did not account for potential nuance in tone & rhetoric of each statement. Another point of interest is the inclusion of economic solutions brought by actors: "the world bank facility must be recapitalized for greater coverage by using already committed funds from the green climate fund", "my country is once again proposing to the assembly that we create a special fund for dealing with this type of disaster". This was not necessarily captured by our model. All these results reinforce our model's predictions of topics & other quantitative analysis, but a more qualitative study of the corpus brought much more context and nuance on the statements, showing that NLP analysis cannot reside in a single model to answer all potential questions, and that multiple methods must be considered during the research's design for text analysis.
