@@ -1,0 +1,411 @@
+---
+title: "Inductive Analysis with Word Embeddings"
+author:
+  - name: Marshall A. Taylor
+    affiliations:
+      - name: New Mexico State University
+        department: Associate Professor
+      - name: Linköping University
+        department: Senior Visiting Fellow
+format:
+  html:
+    toc: true
+    code-tools: true
+bibliography: references.bib
+---
+
+[![Repo](https://img.shields.io/badge/github-blue?logo=github)](https://github.com/Marshall-Soc) [![Repo](https://img.shields.io/badge/gitlab-blue?logo=gitlab)](https://culturalcartography.gitlab.io) [![Repo](https://img.shields.io/badge/website-blue?logo=wordpress)](https://marshalltaylor.net)
+
+**Code and (some of the) text from [*Mapping Texts: Computational Text Analysis for the Social Sciences*](https://global.oup.com/academic/product/mapping-texts-9780197756881?cc=us&lang=en&#), Chapter 11, pp. 222-234**
+
+As we've seen, there are many ways to train word embeddings. Each has its strengths and limitations.
+
+Once we have our embedding space, though, what can we do with it? Let's explore some options. We'll focus on applications for inductive analysis—where we document patterns as they emerge from the data, as opposed to looking for *a priori* patterns. We'll cover methods for analyzing semantic change and discursive bias. I have also provided some "work on your own" activities at the end of this tutorial.
+
+Finally, a word on the empirics here. Remember that all of these analyses are purely for illustration purposes, so I wouldn't read in to any of these outputs as "findings"!
+
+Note that you can probably run all of these code blocks much faster from a local `R` install. If you have `R` installed and ready to go on your machine, simply copy and paste the code blocks into your local session.
+
+## Semantic Change
+
+Word embeddings can be a useful tool for inductively deriving patterns of change in discourse. For example, [Hamilton and colleagues](https://aclanthology.org/P16-1141.pdf) used roughly the same procedure that I document below to find that the "word *gay* shifted from meaning 'cheerful' or 'frolicsome' to referring to homosexuality" over the course of two centuries in English, French, German, and Chinese (p. 2).
+
+Load and install the necessary packages. **The second code block can take about 15-16 minutes on the free access level to Google Colab's servers, so please run blocks 1 and 2 towards the end of the lecture.**
+
+```{r}
+install.packages("pacman")
+install.packages("remotes")
+
+remotes::install_gitlab("culturalcartography/text2map.pretrained")
+remotes::install_gitlab("culturalcartography/text2map.corpora")
+
+pacman::p_load(text2map,
+    text2map.pretrained,
+    text2map.corpora,
+    qdapDictionaries,
+    text2vec,
+    stringi,
+    tidyverse,
+    textclean,
+    rtrek,
+    install = T)
+```
+
+Import and structure the data, which are the transcripts for all episodes from each series in the [*Star Trek* TV franchise](https://leonawicz.github.io/rtrek/).
+
+```{r}
+df_trek <- st_transcripts() #load in the text
+
+df_trek$episode <- rownames(df_trek) #give each episode a unique number
+
+df_lines <- bind_rows(df_trek$text, .id = "episode") |>
+            left_join(df_trek[-10], by = "episode") #merge episode data
+                                                    #with each line of
+                                                    #each transcript
+
+head(df_lines[,c("character","line","series")]) #check it out
+```
+
+Do some minimal preprocessing of the text.
+
+```{r}
+dia_df <- df_lines |>
+    mutate(
+        text = stri_trans_general(line,
+               "Any-Latin; Latin-ASCII"), #transliterate
+        text = replace_contraction(text), #replace contractions -- e.g.,
+                                            #that's becomes that is
+        text = tolower(text), #make everything lowercase
+        text = gsub("[[:punct:]]+", " ", text), #remove punctuation
+        text = gsub("\\s+", " ", text) #remove excess (internal) whitespace
+    )
+```
+
+Make a separate dataframe for each *Star Trek* series, and then put those dataframes into a single list.
+
+```{r}
+dia_df_list <- list()
+
+for (i in unique(df_trek$series)) {
+    dia_df_list[[i]] <- dia_df[dia_df$series == i, ]
+}
+
+names(dia_df_list)
+head(dia_df_list[["TOS"]][,c("character","line","series")])
+head(dia_df_list[["DS9"]][,c("character","line","series")])
+```
+
+Now we can start preparing to train our own word embeddings. Let's keep things simple and make some static [GloVe embeddings](https://aclanthology.org/D14-1162/). We'll make one GloVe matrix per series.
+
+We'll start by making a term-context matrix (TCM) per series. Let's define the context window as the five tokens on either side of the target word (this is a "symmetric window"). We'll put each TCM into a single list.
+
+```{r}
+make_tcm <- function(df) {
+    words <- space_tokenizer(df$text) #tokenize each document
+    iterate <- itoken(words) #create a vocabulary iterator
+    voc <- create_vocabulary(iterate) #create a dataframe of unique tokens
+                                      #(unique words) and get term and doc
+                                      #counts
+    vocab_vec <- vocab_vectorizer(voc) #prep the vocab for creating the TCM
+    tcm <- create_tcm(iterate, vocab_vec, skip_grams_window = 5L) #create the TCM
+    return(tcm)
+}
+
+dia_tcm <- lapply(dia_df_list, make_tcm)
+```
+
+And now we train our vectors—one matrix per series.
+
+The `rank = 300` parameter means that we want vectors with a dimensionality of 300 (i.e., 300 coordinates). The `x_max` parameter is part of the weighting scheme for the cost function: it is the word co-occurence at and above which that word pair receives a maximum weight of 1 and the number by which the other word pair co-occurrences are divided to determine their respective weights when minimizing the cost. Put simply, setting `x_max` to a reasonable number prevents very frequent *and* very infrequent word pairs from being overweighted when computing the word vectors whose dot products best reproduce the logarithm of that word pair's distance-weighted co-occurrence in the TCM. We set that to 10.
+
+While `GlobalVectors$new()` creates the model that we use for training, `g_model$fit_transform()` does the actual training. The `n_iter` parameter determines how many iterations the model will take to minimize each TCM's cost function. That number is set to 10, and is reported as "epochs" in the output below (the "loss" number in the output is the value of the cost function itself, which our model gets as small as possible since that means our word vectors are doing a better job on average of reproducing the original TCMs).
+
+```{r}
+make_vectors <- function(tcm) {
+    g_model <- GlobalVectors$new(
+        rank = 300, x_max = 10,
+        learning_rate = 0.05
+    )
+    vectors <- g_model$fit_transform(tcm, n_iter = 10)
+    vectors <- vectors + t(g_model$components)
+    return(vectors)
+}
+
+dia_vecs <- lapply(dia_tcm , make_vectors)
+```
+
+We now have word vector matrix (embedding space) for each series, where the rows are the series-specific vocabulary and the columns are the 300 dimemsions.
+
+Let's take a look at some of results so far.
+
+Focusing on *Star Trek: The Next Generation*, words are used in similar contexts as "picard"—as in Jean Picard, the captain of the USS Enterprise (played by Sir Patrick Stewart)? Recall that "contextual similarity" can entail words that co-occur with "picard" (syntagmatic association) as well as those words that share similar word collocations as "picard" (paradigmatic association).
+
+```{r}
+picard <- dia_vecs[["TNG"]]["picard", , drop = F]
+
+context <- sim2(dia_vecs[["TNG"]], picard,  method = "cosine")[,1] |>
+  sort(decreasing = T) |>
+  as.matrix()
+
+context[!rownames(context) %in% get_stoplist("snowball2014"),] |>
+  as.matrix() |>
+  head(10)
+```
+
+I'd say these context words make (mostly) a lot of sense.
+
+A cool thing with word embeddings is that since that since our words are represented in a *k*-dimensional vector space, we can use simple vector arithmetic to "shift" our vectors. This is useful, for example, in seeing how our contexts change when we manipulate what our focal word is meant to semantically indicate, or to solve word analogies, or to uncover discursive biases (more on that in the next section of this tutorial).
+
+Let's try it out. In *The Next Generation* series, Jean-Luc Picard is the captain of the USS-Enterprise and William Riker is a commander. If we take the vector for "picard" and substract from it the vector we get after subtracting "william" from "jean," we should see the vector for "riker" move up the cosine ranks—and, perhaps, see the vector for "captain" drop and the one for "commander" rise, since we are artifically "pulling" the "picard" vector closer to portion of the embedding space where William Riker context words are found.
+
+```{r}
+jean <- dia_vecs[["TNG"]]["jean", , drop = F]
+william <- dia_vecs[["TNG"]]["william", , drop = F]
+
+last_name <- picard - jean + william
+
+context <- sim2(dia_vecs[["TNG"]], last_name,  method = "cosine")[,1] |>
+  sort(decreasing = T) |>
+  as.matrix()
+
+context[!rownames(context) %in% get_stoplist("snowball2014"),] |>
+  as.matrix() |>
+  head(10)
+```
+
+And there we have it!
+
+We have one extra step if we want to compare vectors across the embedding spaces. We have to *align* them. When we apply dimension reduction techniques (like GloVe or SVD), we have to ensure that any between-series word vector comparisons reflect actual semantic differences (for example, how one word's meaning has shifted over time) and not arbitrary differences that result from having different coordinate axes. We'll use what's called the [Procrustes alignment](https://aclanthology.org/P16-1141.pdf), which preserves within-matrix cosine similarities while minimizing between-matrix differences.
+
+Note the alignment first requites that our vocabulary be the same across each word vector matrix. We take the *vocabulary intersection* across each series so that each series has the same *v*-by-*k* dimensions, where *v* is the vocabulary and *k* is the number of dimensions (300). The `find_transformation()` function from the `text2map` package with `method = "align"` handles this transformation.
+
+```{r}
+shared_words <- Reduce(
+    intersect,
+    lapply(dia_vecs, rownames)
+) #find the vocabulary intersection
+dia_vecs <- lapply(
+    dia_vecs,
+    function(i) i[shared_words, ]
+) #limit each matrix to the same vocabulary, each in the same
+    #word order
+
+aligned_vecs <- list() #align each matrix (with the first series' matrix
+                      #as the reference matrix), and then dump each aligned
+                      #matrix into a list
+
+for (i in seq_len(length(dia_vecs))) {
+    if (i != 1) {
+        aligned_vecs[[i]] <- find_transformation(
+            dia_vecs[[i]],
+            ref = dia_vecs[[1]], #the reference matrix
+            method = "align") #indicates Procrustes alignment
+    } else {
+        aligned_vecs[[i]] <- dia_vecs[[i]] #all series matrices are aligned
+                                    #to the first series, so we can use the
+                                    #original matrix for the first series (TOS)
+    }
+}
+
+names(aligned_vecs) <- names(dia_vecs)
+```
+
+Now that are embeddings are aligned (i.e., comparable) across time, we have what are called [*diachronic embeddings*](https://aclanthology.org/P16-1141.pdf). Analyses of diachronic word vector matrices—where the researcher documents how words shift across separately-trained spaces—are what I have previously called [*variable embedding space methods*](https://marshallataylor.com/wp-content/uploads/2026/06/2021-stoltz-taylor-cultural-cartography-word-embeddings-poetics.pdf).
+
+Now that we have our diachronic word embeddings, we are ready for some analyses of semantic change.
+
+We can do two things with these embedding spaces:
+
+1.  Quantify how a word's meaning has shifted over time with between-matrix cosine similarities with the same word.
+2.  Evaulate what any shifts in meaning look like by comparing the top context words for the same target word with within-matrix cosine similarities.
+
+How has the meaning of "human" shifted across time? We can start by looking at how different each matrix's vector for "human" is from the "human" vector in the original series (the reference matrix in the alignment).
+
+```{r}
+for (i in c("TAS", "TNG", "DS9", "VOY", "ENT")) {
+    out <- sim2(
+      aligned_vecs[["TOS"]]["human", , drop = FALSE],
+      aligned_vecs[[i]]["human", , drop = FALSE],
+      method = "cosine"
+    )
+    print(paste0(i, ": ", round(out, 4)))
+} #Note that your results will be similar to, but exactly the same, as mine,
+    #because of issues with paralellization
+    #(see github.com/dselivanov/text2vec/issues/251))
+```
+
+These cosine similarities are all pretty similar (in fact, I bet some of you got different rank-orders). Remember, though, that cosine similarity has a maximum value of 1 (indicating identical vectors); so, in absolute terms, none of these series' "human" vectors seem particularly similar to the one from *The Original Series*. This could be measurement error (this is purely for illustration, after all), or it could signal that humanness tends to be articulated differently from series to series (or at least from *The Original Series*).
+
+We can qualitavely evaluate the extent to which humanness is differentially defined in each series by comparing the top context words for the "human" vector in each series. These are the words with the highest cosine similarity to "human" for each series.
+
+```{r}
+out <- list()
+
+for (i in names(aligned_vecs)) {
+    out[[i]] <- sim2(
+        aligned_vecs[[i]],
+        aligned_vecs[[i]]["human", , drop = FALSE]
+    ) |>
+        as.data.frame() |>
+        filter(!rownames(aligned_vecs[[i]]) %in%
+            c(get_stoplist("snowball2014"), "s")) |> #remove stopwords from
+                                                        #the list
+        arrange(desc(human)) |>
+        head(n =11)
+}
+
+out
+```
+
+Whether or not these results are intuitive (remember that this is just a quick illustration of the workflow), this is how you do it!
+
+## Discursive Bias
+
+Word embeddings are perhaps best known in the social sciences for their ability to encode discursive biases in natural language. Many studies have shown that word embeddings tend to exhibit significant gender bias—occupations tend to be heavily gendered, for example, with ["nurse" and "receptionist" described with more feminine words than "architect" or "financier"](https://arxiv.org/abs/1607.06520). [Researchers have also used word embeddings](https://journals.sagepub.com/doi/full/10.1177/00031224231197436) to find that medical conditions related to behavioral health and preventable illnesses are more likely to garner talk of immorality and negative personality traits in U.S. news.
+
+Analyzing discursive bias with embedding spaces requires first defining what is called a *semantic dimension*—or, as I like to call it, a [*semantic direction*](https://marshallataylor.com/wp-content/uploads/2026/06/2020-taylor-stoltz-integrating-semantic-directions-jcss.pdf).
+
+A direction is a path on which something moves or sits. This is analogous to discursive bias: given two semantic "poles," we can place a text along the line between these poles—and the closer it is to one pole, the more that text is biased toward that pole relative to the other one. Imagine, for example, that we have an embedding space that includes the words "boy," "man," "men," "girl," "woman," and "women." If we want to know what other words in the embedding space are described in more stereotypically masculine contexts or stereotypically feminine contexts, we can construct a "gender direction" (or "gender dimension") by, for example, averaging the vectors for "boy," "man," and "men," on one hand, and averaging the vectors for "girl," "woman," and "women," on the other. [These would be called *semantic centroids*, and the terms we used to construct them would be called our *anchor words*](https://marshallataylor.com/wp-content/uploads/2026/06/stoltz-et-al-2024-a-tool-kit-for-relation-induction-in-text-analysis.pdf). If we then subtract the feminine centroid from the masculine centroid, we end up with a difference vector on which we can project the vectors for other words to assess their level and direction of gender bias. Larger positive cosine similarities would indicate a word that is articulated in more stereotypically masculine ways and larger negative cosine similarities would indicate a word that is articulated in more stereotypically feminine ways, and cosine similarities close to zero would indicate little to no gender bias in how a word is used.
+
+Let's work through an example. We'll use a random sample of 3,800 news articles from the [All the News (ATN) Corpus](https://culturalcartography.gitlab.io/text2map.corpora/reference/corpus_atn2.html) that mention "immigrant" or "immigration" at least once. Our goal will be to see if there are noticeable biases in the extent to which articles use moral versis immoral language when covering immigration and immigration-related issues.
+
+We'll start by loading in the data and taking care of some preprocessing.
+
+```{r}
+data("corpus_atn_immigr", package = "text2map.corpora")
+data("contractions", package = "qdapDictionaries")
+
+df_atn <- corpus_atn_immigr |>
+  mutate(text = replace_non_ascii(text), #replace common non-ASCII characters,
+                                          #like © with (C) and ¼ with 1/4
+        text = replace_url(text, replacement = " "), #remove URLs
+        text = replace_html(text, replacement = " "), #remove HTML code
+        text = replace_contraction(text,
+            contraction.key = contractions,
+            ignore.case = TRUE), #replace contractions with their full word
+                                  #counterparts, and do so while ignoring
+                                  #case
+        text = str_replace_all(text, "[[:punct:]]", " "), #remove punctuation
+        text = replace_ordinal(text), #replace ordinal numbers with their full
+                                    #word counterpart, like 22nd to
+                                    #twenty second
+        text = str_replace_all(text, "[\\s]+", " "), #remove excess (internal)
+                                                      #whitespace
+        text = tolower(text) #remove capitalization
+    )
+```
+
+Convert the cleaned corpus into a standard document-term matrix (DTM).
+
+We'll remove words in the 2014 Snowball stoplist (e.g., "a," "and," "before," etc.) and words that appear in less than 1% of all news articles.
+
+```{r}
+dtm_atn <- df_atn |>
+    dtm_builder(text, doc_id) |>
+    text2map::dtm_stopper(stop_list = get_stoplist("snowball2014"),
+                stop_docprop = c(.01, Inf))
+
+head(dtm_atn[,1:10]) |> as.matrix() #check it out
+```
+
+Now we need our embeddings—just one set this time, since we aren't going to worry about any longitudinal analyses right now.
+
+We could, of course, train our own embeddings like we did before with our algorithm of choice (GloVe, word2vec, fastText, or contextualized embeddings like BERT or ELMo). But we'll do something a little different—we'll use *pretrained embeddings*. These are readymade word vectors. Pretrained embeddings are popular because they are quite good at picking up on nuanced semantic relationships because they are trained on enormous corpora. Using pretrained embeddings can be a good choice for researchers who are interested in prevalent "public" meanings, especially when their own corpus might be too small or sparse to reliably train their own embeddings.
+
+In contrast, *locally-trained embeddings* (like we did before) are generally better at picking up on idiosyncratic semantic patterns—[especially when the text producers use argotic language](https://www.journals.uchicago.edu/doi/abs/10.1086/715162). The ATN articles come from (more or less) mainstream outlets, so this example is a good example for showcasing pretrained embeddings. (It also means that we don't have to bear the computing cost of training our own embeddings!)
+
+There are many (many many) pretrained embeddings out there, all trained on a variety of corpora and with a variety of algorithms. We'll use Facebook's fastText embeddings (*k* = 300), trained on the Common Crawl and comprising roughly 2 million word vectors across 600 billion tokens.
+
+```{r}
+# download the model once
+download_pretrained("vecs_fasttext300_commoncrawl")
+# load the model each session
+wv <- load_pretrained("vecs_fasttext300_commoncrawl") # rename so it's tidier
+```
+
+Now we'll create a subset of these word vectors that only include the words that are in both the ATN DTM and the fastText embeddings.
+
+```{r}
+atn_vectors <- wv[rownames(wv) %in% colnames(dtm_atn), ]
+```
+
+Now we can get started constructing our moral-immoral semantic direction. Let's make a dataframe of anchor words: one column the moral words and the other column the immoral words. Such a list of anchor words (what we might call *anchor dictionaries*) is provided in the `text2map` package.
+
+```{r}
+data("anchor_lists", package = "text2map")
+
+anchors <- anchor_lists |>
+  subset(relation == "morality") |>
+  select(pole1, pole2)
+
+anchors |>
+  head(10)
+```
+
+The `get_direction()` function in `text2map` will take this dataframe as its input and return the difference vector. (The default method for getting the difference vector is what's called the *paired method*, where we take each row in the dataframe, treat them as antonym pairs, and substract the second column word's vector from the first column word's vector before then getting the average. There is also the *pooled method* and the *PCA method*, but we won't get into those here.)
+
+```{r}
+anchors <- anchors[anchors$pole1 %in% rownames(atn_vectors),] #limit the anchor
+                                      #words to those that are in the embeddings
+anchors <- anchors[anchors$pole2 %in% rownames(atn_vectors),] #limit the anchor
+                                      #words to those that are in the embeddings
+
+good_bad <- get_direction(anchors = anchors, wv = atn_vectors)
+
+good_bad
+```
+
+Noe let's get the cosine similarity of each word in the ATN DTM to this difference vector. Larger positive values indicate a word that is more contextually similar to "moral" as opposed to "immoral" and larger negative values indicate a word that is more contextually similar to "immoral" as opposed to "moral."
+
+```{r}
+sim_dir <- sim2(good_bad, atn_vectors, method = "cosine")
+
+df_dir <- data.frame(good_pole = sim_dir["good_pole", ],
+                     terms = colnames(sim_dir)) |>
+  mutate(good_bad_label = ifelse(
+    good_pole >= 0,
+    "Moral", "Immoral"),
+    good_bad = abs(good_pole)
+  )
+```
+
+Finally, let's make a plot to compare the most distinctively moral words to the most distinctively immoral words. Think of this as a face validity check.
+
+```{r}
+df_dir |>
+  group_by(good_bad_label) |>
+  slice_max(good_bad, n = 30) |>
+  mutate(term = fct_reorder(terms, good_bad)) |>
+  ggplot(aes(term, good_bad, fill = good_bad_label, label = terms)) +
+  geom_col() +
+  guides(fill = "none") +
+  labs(x = NULL, y = "Cosine Similarity to Pole") +
+  coord_flip() +
+  facet_wrap(~good_bad_label, scale = "free") +
+  theme_bw()
+```
+
+I'd say our semantic direction is accurately capturing differences in moral-immoral language, as we'd hope.
+
+There are any number of followup analyses we could perform, such getting document-level representations of discursive bias (by, e.g., getting the average cosine similarity between the words in a document and the immigration-citizenship vector, or using a method like [Concept Mover's Distance (CMD)](https://marshallataylor.com/wp-content/uploads/2026/06/2020-taylor-stoltz-integrating-semantic-directions-jcss.pdf)). You could then assess the extent to which discursive bias in a document is a function of covariates (e.g., political lean of the news outlet, publication date, journalist charactertistics, etc.).
+
+Let's work through a quick example of this using (CMD). I'll spare you the technical details of what CMD does, but just know that it produces article-level scores where larger positive values indicate an article that more heavily engages the concept of morality relative to citizenship and larger negative scores indicates the opposite. The `CMDist()` function is in the `text2map` package.
+
+```{r}
+good_cmd <- CMDist(dtm_atn, cv = good_bad, wv = atn_vectors)
+```
+
+Now we can add the (standardized) article-level CMD scores to the original ATN dataset, which includes variables for political lean, publication outlet, and publication year, among others. We can just use `cbind()` to merge the dataframes as opposed to a join (e.g., `left_join()`) since the articles are in the same order.
+
+```{r}
+df_atn <- cbind(df_atn, good_cmd)
+```
+
+We'll just a regular linear regression with the CMD scores as the outcome variable as political lean and publication year as our covariates.
+
+```{r}
+lm(as.numeric(good_pole) ~ factor(lean) + year, data = df_atn) |>
+  summary()
+```
+
+We see that articles from right-leaning outlets are more likely to contain immoralist language in stories covering immigration than articles from left-leaning outlets (the reference category). It also appears that, net of differences in political lean, more recent articles are more likely to use immoralist language when discussing immigration (though, in a real analysis, we'd probably want to interact time with political lean to see if any temporal trend varies by ideological orientation).
