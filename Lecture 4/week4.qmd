@@ -1,18 +1,18 @@
----
-title: "Inductive Analysis with Word Embeddings"
-author:
-  - name: Marshall A. Taylor
-    affiliations:
-      - name: New Mexico State University
-        department: Associate Professor
-      - name: Linköping University
-        department: Senior Visiting Fellow
-format:
-  html:
-    toc: true
-    code-tools: true
-bibliography: references.bib
----
+|                                                 |
+|-------------------------------------------------|
+| itle: "Inductive Analysis with Word Embeddings" |
+| uthor:                                          |
+| \- name: Marshall A. Taylor                     |
+| affiliations:                                   |
+| \- name: New Mexico State University            |
+| department: Associate Professor                 |
+| \- name: Linköping University                   |
+| department: Senior Visiting Fellow              |
+| ormat:                                          |
+| html:                                           |
+| toc: true                                       |
+| code-tools: true                                |
+| ibliography: references.bib                     |
 
 [![Repo](https://img.shields.io/badge/github-blue?logo=github)](https://github.com/Marshall-Soc) [![Repo](https://img.shields.io/badge/gitlab-blue?logo=gitlab)](https://culturalcartography.gitlab.io) [![Repo](https://img.shields.io/badge/website-blue?logo=wordpress)](https://marshalltaylor.net)
 
