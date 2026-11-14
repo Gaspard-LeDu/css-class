@@ -1,0 +1,255 @@
+---
+title: "LEDU_exercise3"
+format: pdf
+---
+
+# Semantic directions
+
+```{r}
+# Copy-pasted code from the exercise's page
+library(pacman)
+pacman::p_load(tidyverse,
+               textclean,
+               textstem,
+               stringi,
+               tidytext,
+               text2map,
+               topicmodels,
+               topicdoc,
+               Matrix,
+               forcats,
+               LDAvis,
+               servr,
+               devtools,
+               quanteda,
+               udpipe,
+               textclean,
+               stm,
+               remotes,
+               text2map.corpora,
+               text2map.pretrained,
+               text2vec,
+               reshape2,
+               dplyr,
+               install = T)
+
+devtools::install_github("quanteda/quanteda.corpora")
+library(quanteda.corpora)
+
+data("data_corpus_ungd2017", package = "quanteda.corpora")
+un <- data_corpus_ungd2017
+rm(data_corpus_ungd2017) #rename the file to "un" to make the script cleaner
+
+un <- un |>
+  convert(to = "data.frame") |>
+  drop_na(continent, gdp_per_capita)
+```
+
+
+```{r}
+remotes::install_gitlab("culturalcartography/text2map.pretrained")
+library(text2map.pretrained)
+```
+
+```{r}
+# Code copy-pasted from the exercise's page
+un <- un |>
+  mutate(text.clean = stri_trans_general(text, id = "Any-Latin;Latin-ASCII"),
+         text.clean = tolower(text.clean),
+         text.clean = replace_curly_quote(text.clean),
+         text.clean = replace_contraction(text.clean),
+         text.clean = gsub("[[:digit:]]+", " ", text.clean),
+         text.clean = gsub("[[:space:]]+", " ", text.clean),
+         text.clean = trimws(text.clean))
+```
+
+```{r}
+# Code copy-pasted from the exercise's page
+eng <- udpipe_download_model(language = "english-gum")
+ud_eng <- udpipe_load_model(eng$file_model)
+
+un.df.trip <- udpipe_annotate(
+  x = un$text.clean,
+  object = ud_eng) |>
+  as_tibble() |>
+  anti_join(stop_words, by = c("lemma" = "word")) |>
+  select(doc_id, lemma) |>
+  filter(!grepl("[[:punct:]]+", lemma)) |>
+  count(doc_id, lemma)
+```
+
+```{r}
+# Making the document term matrix
+un.dtm <- un.df.trip |>
+  cast_dfm(
+    document = doc_id,
+    term = lemma,
+    value = n) |>
+  dfm_trim(min_docfreq = 0.1,
+           max_docfreq = 0.9,
+           docfreq_type = "prop")
+```
+
+```{r}
+download_pretrained("vecs_fasttext300_commoncrawl")
+wv <- load_pretrained("vecs_fasttext300_commoncrawl")
+
+  # Keep only those word vectors that correspond to words in the DTM
+un.vectors <- wv[rownames(wv) %in% colnames(un.dtm), ]
+```
+
+```{r}
+# Had to change data loading method to fix issues
+data(anchor_lists, package = "text2map")
+anchors <- anchor_lists |>
+  subset(relation == "policy") |>
+  select(pole1, pole2)
+
+head(anchors)
+```
+
+```{r}
+anchors <- anchors[anchors$pole1 %in% rownames(un.vectors),]
+anchors <- anchors[anchors$pole2 %in% rownames(un.vectors),]
+```
+
+Taken from week4 class exercise
+
+```{r}
+domestic_foreign <- get_direction(anchors = anchors, wv = un.vectors)
+domestic_foreign
+```
+
+```{r}
+sim_dir <- sim2(domestic_foreign, un.vectors, method = "cosine")
+
+df_dir <- data.frame(domestic_pole = sim_dir["domestic_pole", ],
+                     terms = colnames(sim_dir)) |>
+  mutate(domestic_foreign_label = ifelse(
+    domestic_pole >= 0,
+    "Domestic", "Foreign"),
+    domestic_foreign = abs(domestic_pole)
+  )
+```
+
+```{r}
+df_dir |>
+  group_by(domestic_foreign_label) |>
+  slice_max(domestic_foreign, n = 20) |>
+  mutate(term = fct_reorder(terms, domestic_foreign)) |>
+  ggplot(aes(term, domestic_foreign, fill = domestic_foreign_label, label = terms)) +
+  geom_col() +
+  guides(fill = "none") +
+  labs(x = NULL, y = "Cosine Similarity to Pole") +
+  coord_flip() +
+  facet_wrap(~domestic_foreign_label, scale = "free") +
+  theme_bw()
+```
+
+From this output, we can get informations on each pole and their associated words (within pole analysis), as well as compare pole between each other (between analysis). Within pole analysis shows the mix of literal semantics and political meaning. For example, domestic pole is mostly associated with violence (probably from the literal term domestic violence), and also with range, scale & capacity (maybe raising the issue of translating UN discussions to one's own country and it's varying range, scale and capacity, which relates more to political meaning). Foreign shows same mixture of literal and political (foreign language & diplomacy having probably a literal association, but also the word sovereign suggesting that discussions about foreign raise the issue of sovereignty). Comparing both poles starts getting difficult when the literal and political is mixed. Maybe a clearer research question and methodology would alleviate the ambiguïty of our results.
+
+# Word mover's distance
+
+```{r}
+vocab <- rownames(un.vectors)
+
+un.dtm.wmd <- un.dtm[, vocab]
+rownames(un.dtm.wmd) <- un$doc_id
+
+wmd_mod <- RWMD$new(x = un.dtm.wmd, embeddings = un.vectors)
+wmd_dis <- wmd_mod$sim2(x = un.dtm.wmd)
+```
+
+```{r}
+library(ggplot2)
+library(ggrepel)
+wmd_dis[c("United States","China"),] |> 
+  t() |>
+  as.data.frame() |>
+  rownames_to_column(var = "country") |>
+  reshape2::melt() |>
+  filter(!(country == "United States" & variable == "United States") &
+           !(country == "China" & variable == "China")) |>
+  group_by(variable) |>
+  mutate(label = ifelse(value >= quantile(value, .9) |
+                          value <= quantile(value, .1), 
+                        country, NA)) |>
+  ungroup() |>
+  ggplot(aes(x = variable, y = value)) +
+  geom_boxplot(outlier.shape = NA, alpha = .3) +
+  geom_text_repel(aes(label = label), alpha = .5, max.overlaps = Inf) +
+  labs(y = "Word Mover's Distance",
+       x = "")
+```
+
+Our results here are incoherent with class website, even accounting for the inversed analysis (here we're measuring distance while the website measures similarity): Turkmenistan has lowest word mover's distance with the US here while it has lowest word mover's similarity on the class website. A quick check for potential NAs could help understanding the problem.
+
+```{r}
+length(unique(wmd_dis |> rownames()))
+sum(is.na(wmd_dis[,"China"]))
+sum(is.na(wmd_dis[,"United States"]))
+```
+
+Analysis shows there is no accounted NAs in our data, we will try to see what our results show despite questions raised previously. Tanzania appears as an outlier in the US case with a Word Mover's Distance between 0.75 and 0.80, suggesting it is the furthest country from the US in terms of semantic meaning.  Closest countries are Turkmenistan & Malaysia. Surprisingly, our results show the Palestinian Territories as among the closests, despite continuous support of Israel by the US on the international stage. This reinforces our suspicion relating to the robustness of our results.
+
+For China, Kiribati, Congo-Kinshasa & Cyprus appear as the furthest awaya, and Jamaica the least furthest away. Again, the nature of these results are puzzling and raise suspicions.
+
+Overall, Congo-Kinshasa is the country that shares distance with both the US and China. Countries tend to be further away semantically from China than the US, suggesting that UN speeches center more to the way the US speak than China at the time. It would be interesting to compare these older results with more recent UN speeches.
+
+# On your own
+
+Accounting for pre-established anchor words in the Text2map package, I was mostly interested by the black/white opposition. I was curious to see what was associated with each word, as it could give both rich literal and political insights on the way UN countries speak. I chose to select the maximum of 5 words for this analysis, so as to capture semantically richer results.
+
+```{r}
+data("anchor_lists", package = "text2map")
+anchors <- anchor_lists |>
+  subset(relation == "whiteness") |>
+  select(pole1, pole2) |>
+  slice_head(n = 5)
+
+anchors |>
+  head(10)
+```
+
+We can already notice that black and white is only associated with ethnicities and continents (caucasian, latino, african, european)
+
+```{r}
+anchors <- anchors[anchors$pole1 %in% rownames(un.vectors),]
+anchors <- anchors[anchors$pole2 %in% rownames(un.vectors),]
+```
+
+Taken from week4 class exercise
+
+```{r}
+white_black <- get_direction(anchors = anchors, wv = un.vectors)
+```
+
+```{r}
+sim_dir <- sim2(white_black, un.vectors, method = "cosine")
+
+df_dir <- data.frame(european_pole = sim_dir["european_pole", ],
+                     terms = colnames(sim_dir)) |>
+  mutate(white_black_label = ifelse(
+    european_pole >= 0,
+    "White", "Black"),
+    white_black = abs(european_pole)
+  )
+```
+
+```{r}
+df_dir |>
+  group_by(white_black_label) |>
+  slice_max(white_black, n = 20) |>
+  mutate(term = fct_reorder(terms, white_black)) |>
+  ggplot(aes(term, white_black, fill = white_black_label, label = terms)) +
+  geom_col() +
+  guides(fill = "none") +
+  labs(x = NULL, y = "Cosine Similarity to Pole") +
+  coord_flip() +
+  facet_wrap(~white_black_label, scale = "free") +
+  theme_bw()
+```
+
+Results are really interesting. The black pole is filled with ethnicity, country & continent origins. (African, Africa, Sahel, ...). Non-black ethnicities and even gender are associated with the word black, such as myanmar, arab, woman & girl. The notion of empowerement is the only non-identity-related word of this lexicon, but still relates to them in the sense that it suggests fighting domination. Those results suggest that black is a semantic center for talking about minorities & peripheric countries.
+
+Whiteness on the other hand is associated with "neutral" or "technical" words that are not associated directly with ethnicity, such as emissions, transit, policy, system. European comes only at the 5th rank of cosine similarity to the white pole. French sociology coins the word "blanchité" (whiteness in English) to analyse how white domination relies on denial or invisibility of its existence to perpetuate itself (Brun & Cosquer, 2024). Our preliminary results reinforce this idea, and a more detailed analysis would help understand the nuance of the phenomenon. For example, it would be interesting to directly target ethnically white words such as "European" or "France" to see what are their associations compared to countries and origins assigned to blackness.
