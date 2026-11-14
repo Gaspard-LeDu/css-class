@@ -99,7 +99,7 @@ un.vectors <- wv[rownames(wv) %in% colnames(un.dtm), ]
 ```
 
 ```{r}
-# Had to change data loading method to fix issues
+# Had to change data loading method to fix loading issues
 data(anchor_lists, package = "text2map")
 anchors <- anchor_lists |>
   subset(relation == "policy") |>
